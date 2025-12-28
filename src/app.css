@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@layer theme {
+  :root {
+    --font-sans: "Inter Variable", "Noto Sans CJK JP", "Noto Sans JP", "Noto Sans", sans-serif;
+    --font-serif: "Times New Roman", "Noto Serif CJK JP", "Noto Serif JP", "Noto Serif" serif;
+    --font-mono: "Roboto Mono", "Consolas", "Inconsolata", monospace;
+  }
+}
