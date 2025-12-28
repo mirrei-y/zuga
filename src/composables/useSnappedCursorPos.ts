@@ -1,8 +1,9 @@
 import { gridStore } from "~/stores/gridStore";
 import { useCursorPos } from "./useCursorPos";
 import { Pos } from "~/utilities/pos";
-import { cameraStore, screenToWorld } from "~/stores/cameraStore";
+import { cameraStore } from "~/stores/cameraStore";
 import { useWindowSize } from "./useWindowSize";
+import { screenToWorld } from "~/utilities/coordinate";
 
 export const useSnappedCursorPos = () => {
   const cursorPos = useCursorPos();

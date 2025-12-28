@@ -1,7 +1,6 @@
-import { readables } from "~/utilities/meta";
+import { readables, thumbnails } from "~/utilities/meta";
 import { drawingStateStore } from "~/stores/drawingStateStore";
 import { kinds, Kind } from "~/utilities/props";
-import { thumbnails } from "~/utilities/thumbnail";
 
 export default function Sidebar() {
   const [drawingState, setDrawingState] = drawingStateStore;

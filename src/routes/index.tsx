@@ -3,21 +3,22 @@ import { createMemo, createSignal } from "solid-js";
 import Sidebar from "~/components/Sidebar";
 import { useSnappedCursorPos } from "~/composables/useSnappedCursorPos";
 import { useWindowSize } from "~/composables/useWindowSize";
-import { requirePoints } from "~/utilities/meta";
+import { requiredPoints } from "~/utilities/meta";
 import { contentStore } from "~/stores/contentStore";
 import { drawingStateStore } from "~/stores/drawingStateStore";
 import { gridStore } from "~/stores/gridStore";
 import { checkNumberConstraint } from "~/utilities/numberConstraint";
-import { Kind } from "~/utilities/props";
-import { defaultOtherProp, shapeProp, svg } from "~/utilities/metaFn";
+import { defaultOtherProp, Kind, shapeProp } from "~/utilities/props";
 import { Content } from "~/utilities/content";
-import { cameraStore, zoom, worldToScreen } from "~/stores/cameraStore";
+import { cameraStore } from "~/stores/cameraStore";
+import { svg } from "~/utilities/svgs";
+import { screenToWorld, worldToScreen } from "~/utilities/coordinate";
 
 export default function Home() {
   const [grid, _setGrid] = gridStore;
   const [drawingState, setDrawingState] = drawingStateStore;
   const [content, setContent] = contentStore;
-  const [camera, _setCamera] = cameraStore;
+  const [camera, setCamera] = cameraStore;
   const windowSize = useWindowSize();
   const snappedCursorPos = useSnappedCursorPos();
   const snappedCursorScreenPos = createMemo(() => {
@@ -37,7 +38,7 @@ export default function Home() {
   const doubleClickThreshold = 300;
   const [lastClickTime, setLastClickTime] = createSignal(0);
   const isDoubleClick = () => (performance.now() - lastClickTime()) < doubleClickThreshold;
-  
+
   const handleClick = (e: MouseEvent) => {
     const kind: Kind = drawingState.kind;
 
@@ -56,8 +57,8 @@ export default function Home() {
     }
 
     if (
-      checkNumberConstraint(requirePoints[kind], drawingState.points.length) &&
-      (!checkNumberConstraint(requirePoints[kind], drawingState.points.length + 1) || isDoubleClick())
+      checkNumberConstraint(requiredPoints[kind], drawingState.points.length) &&
+      (!checkNumberConstraint(requiredPoints[kind], drawingState.points.length + 1) || isDoubleClick())
     ) {
       setContent({
         content: [...content.content, {
@@ -67,7 +68,6 @@ export default function Home() {
           otherProps: defaultOtherProp(kind),
         } as Content],
       })
-      console.log(drawingState.points);
       setDrawingState({ points: [] });
     }
 
@@ -76,8 +76,29 @@ export default function Home() {
 
   const handleWheel = (e: WheelEvent) => {
     e.preventDefault();
-    const zoomFactor = 1 - e.deltaY * 0.001;
-    zoom(zoomFactor, { x: e.clientX, y: e.clientY });
+    const factor = 1 - e.deltaY * 0.001;
+    const center = { x: e.clientX, y: e.clientY };
+
+    const newScale = camera.scale * factor;
+    if (newScale < 0.1 || 10 < newScale) {
+      return;
+    }
+
+    const worldPosBeforeZoom = screenToWorld(center, camera, windowSize());
+
+    setCamera({ scale: newScale });
+
+    const worldPosAfterZoom = screenToWorld(center, camera, windowSize());
+
+    const dx = worldPosBeforeZoom.x - worldPosAfterZoom.x;
+    const dy = worldPosBeforeZoom.y - worldPosAfterZoom.y;
+
+    setCamera(c => ({
+      center: {
+        x: c.center.x + dx,
+        y: c.center.y + dy,
+      }
+    }));
   };
 
   return (
@@ -101,7 +122,7 @@ export default function Home() {
           on:wheel={handleWheel}
         >
           {content.content.map(item => svg(item.kind, item.shapeProps, item.otherProps))}
-          {checkNumberConstraint(requirePoints[drawingState.kind], drawingState.points.length + 1) &&
+          {checkNumberConstraint(requiredPoints[drawingState.kind], drawingState.points.length + 1) &&
             svg(
               drawingState.kind,
               shapeProp(drawingState.kind, [...drawingState.points, snappedCursorPos()]),
