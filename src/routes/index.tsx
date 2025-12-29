@@ -1,11 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import Sidebar from "~/components/Sidebar";
 import { useSnappedCursorPos } from "~/composables/useSnappedCursorPos";
 import { useWindowSize } from "~/composables/useWindowSize";
 import { requiredPoints } from "~/utilities/meta";
 import { contentStore } from "~/stores/contentStore";
-import { drawingStateStore } from "~/stores/drawingStateStore";
+import { handStore } from "~/stores/handStore";
 import { gridStore } from "~/stores/gridStore";
 import { checkConstraint } from "~/utilities/constraint";
 import { defaultOtherProp, Kind, shapeProp } from "~/utilities/props";
@@ -16,8 +16,8 @@ import { screenToWorld, worldToScreen } from "~/utilities/coordinate";
 import { toScreenPos, toWorldPos } from "~/utilities/pos";
 
 export default function Home() {
-  const [grid, _setGrid] = gridStore;
-  const [drawingState, setDrawingState] = drawingStateStore;
+  const [grid] = gridStore;
+  const [hand, setHand] = handStore;
   const [content, setContent] = contentStore;
   const [camera, setCamera] = cameraStore;
   const windowSize = useWindowSize();
@@ -41,35 +41,35 @@ export default function Home() {
   const isDoubleClick = () => (performance.now() - lastClickTime()) < doubleClickThreshold;
 
   const handleClick = (e: MouseEvent) => {
-    const kind: Kind = drawingState.kind;
+    const kind: Kind = hand.kind;
 
     if (!isDoubleClick()) {
-      const newPoints = [...drawingState.points, snappedCursorPos()];
+      const newPoints = [...hand.points, snappedCursorPos()];
       if (
-        drawingState.points.at(-1)?.x === snappedCursorPos().x &&
-        drawingState.points.at(-1)?.y === snappedCursorPos().y
+        hand.points.at(-1)?.x === snappedCursorPos().x &&
+        hand.points.at(-1)?.y === snappedCursorPos().y
       ) {
         setLastClickTime(performance.now());
         return;
       }
-      setDrawingState({
+      setHand({
         points: newPoints,
       });
     }
 
     if (
-      checkConstraint(requiredPoints[kind], drawingState.points.length) &&
-      (!checkConstraint(requiredPoints[kind], drawingState.points.length + 1) || isDoubleClick())
+      checkConstraint(requiredPoints[kind], hand.points.length) &&
+      (!checkConstraint(requiredPoints[kind], hand.points.length + 1) || isDoubleClick())
     ) {
       setContent({
         content: [...content.content, {
           uuid: crypto.randomUUID(),
           kind,
-          shapeProps: shapeProp(kind, drawingState.points),
+          shapeProps: shapeProp(kind, hand.points),
           otherProps: defaultOtherProp(kind),
         } as Content],
       })
-      setDrawingState({ points: [] });
+      setHand({ points: [] });
     }
 
     setLastClickTime(performance.now());
@@ -122,13 +122,16 @@ export default function Home() {
           on:click={handleClick}
           on:wheel={handleWheel}
         >
-          {content.content.map(item => svg(item.kind, item.shapeProps, item.otherProps))}
-          {checkConstraint(requiredPoints[drawingState.kind], drawingState.points.length + 1) &&
-            svg(
-              drawingState.kind,
-              shapeProp(drawingState.kind, [...drawingState.points, snappedCursorPos()]),
-              defaultOtherProp(drawingState.kind),
+          <For each={content.content}>{
+            item => svg(item.kind, item.shapeProps, item.otherProps)
+          }</For>
+          <Show when={checkConstraint(requiredPoints[hand.kind], hand.points.length + 1)}>
+            {svg(
+              hand.kind,
+              shapeProp(hand.kind, [...hand.points, snappedCursorPos()]),
+              defaultOtherProp(hand.kind),
             )}
+          </Show>
         </svg>
       </main>
       <div class="absolute w-4 h-4 rounded-full bg-cyan-800 opacity-20 pointer-events-none" style={{
