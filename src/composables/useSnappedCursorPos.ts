@@ -6,20 +6,20 @@ import { screenToWorld } from "~/utilities/coordinate";
 import { toWorldPos } from "~/utilities/pos";
 import { createMemo } from "solid-js";
 
-export const useSnappedCursorPos = createMemo(() => {
+export const useSnappedCursorPos = () => {
   const cursorPos = useCursorPos();
-  const [camera, _setCamera] = cameraStore;
+  const [camera] = cameraStore;
   const windowSize = useWindowSize();
-  const [grid, _setGrid] = gridStore;
+  const [grid] = gridStore;
 
-  const snappedCursorPos = () => {
+  const snappedCursorPos = createMemo(() => {
     const worldPos = screenToWorld(cursorPos(), camera, windowSize());
 
     return toWorldPos({
       x: Math.round(worldPos.x / grid.width) * grid.width,
       y: Math.round(worldPos.y / grid.height) * grid.height,
-    })
-  };
+    });
+  });
 
   return snappedCursorPos;
-});
+};
