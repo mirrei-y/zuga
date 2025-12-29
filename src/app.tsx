@@ -4,14 +4,13 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 
 import "./app.css";
-import "@fontsource-variable/inter"
-
+import "@fontsource-variable/inter";
 
 export default function App() {
   return (
     <>
       <Router
-        root={props => (
+        root={(props) => (
           <MetaProvider>
             <Title>Zuga</Title>
             <Suspense>{props.children}</Suspense>

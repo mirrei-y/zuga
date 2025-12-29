@@ -6,5 +6,5 @@ export type Content = {
     kind: K;
     shapeProps: ShapeProps[K];
     otherProps: OtherProps[K];
-  }
+  };
 }[Kind];

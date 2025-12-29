@@ -26,19 +26,28 @@ export default function Home() {
     return worldToScreen(snappedCursorPos(), camera, windowSize());
   });
   const backgroundPosition = createMemo(() => {
-    const worldOriginScreen = worldToScreen(toWorldPos({ x: 0, y: 0 }), camera, windowSize());
+    const worldOriginScreen = worldToScreen(
+      toWorldPos({ x: 0, y: 0 }),
+      camera,
+      windowSize()
+    );
     const backgroundSizeX = grid.width * camera.scale;
     const backgroundSizeY = grid.height * camera.scale;
 
     return {
-      x: ((worldOriginScreen.x % backgroundSizeX) + backgroundSizeX) % backgroundSizeX,
-      y: ((worldOriginScreen.y % backgroundSizeY) + backgroundSizeY) % backgroundSizeY,
+      x:
+        ((worldOriginScreen.x % backgroundSizeX) + backgroundSizeX) %
+        backgroundSizeX,
+      y:
+        ((worldOriginScreen.y % backgroundSizeY) + backgroundSizeY) %
+        backgroundSizeY,
     };
   });
 
   const doubleClickThreshold = 300;
   const [lastClickTime, setLastClickTime] = createSignal(0);
-  const isDoubleClick = () => (performance.now() - lastClickTime()) < doubleClickThreshold;
+  const isDoubleClick = () =>
+    performance.now() - lastClickTime() < doubleClickThreshold;
 
   const handleClick = (e: MouseEvent) => {
     const kind: Kind = hand.kind;
@@ -59,16 +68,20 @@ export default function Home() {
 
     if (
       checkConstraint(requiredPoints[kind], hand.points.length) &&
-      (!checkConstraint(requiredPoints[kind], hand.points.length + 1) || isDoubleClick())
+      (!checkConstraint(requiredPoints[kind], hand.points.length + 1) ||
+        isDoubleClick())
     ) {
       setContent({
-        content: [...content.content, {
-          uuid: crypto.randomUUID(),
-          kind,
-          shapeProps: shapeProp(kind, hand.points),
-          otherProps: defaultOtherProp(kind),
-        } as Content],
-      })
+        content: [
+          ...content.content,
+          {
+            uuid: crypto.randomUUID(),
+            kind,
+            shapeProps: shapeProp(kind, hand.points),
+            otherProps: defaultOtherProp(kind),
+          } as Content,
+        ],
+      });
       setHand({ points: [] });
     }
 
@@ -94,11 +107,11 @@ export default function Home() {
     const dx = worldPosBeforeZoom.x - worldPosAfterZoom.x;
     const dy = worldPosBeforeZoom.y - worldPosAfterZoom.y;
 
-    setCamera(c => ({
+    setCamera((c) => ({
       center: toWorldPos({
         x: c.center.x + dx,
         y: c.center.y + dy,
-      })
+      }),
     }));
   };
 
@@ -106,39 +119,59 @@ export default function Home() {
     <>
       <Title>Zuga</Title>
       <Sidebar />
-      <main class="w-full h-screen" style={{
-        "background-image": `
-          linear-gradient(0deg, transparent ${grid.height * camera.scale - 1}px, var(--color-gray-100) ${grid.height * camera.scale - 1}px),
-          linear-gradient(90deg,  transparent ${grid.width * camera.scale - 1}px, var(--color-gray-100) ${grid.width * camera.scale - 1}px)`,
-        "background-size": `${grid.width * camera.scale}px ${grid.height * camera.scale}px`,
-        "background-position-x": `${backgroundPosition().x}px`,
-        "background-position-y": `${backgroundPosition().y}px`,
-      }}>
+      <main
+        class="w-full h-screen"
+        style={{
+          "background-image": `
+          linear-gradient(0deg, transparent ${
+            grid.height * camera.scale - 1
+          }px, var(--color-gray-100) ${grid.height * camera.scale - 1}px),
+          linear-gradient(90deg,  transparent ${
+            grid.width * camera.scale - 1
+          }px, var(--color-gray-100) ${grid.width * camera.scale - 1}px)`,
+          "background-size": `${grid.width * camera.scale}px ${
+            grid.height * camera.scale
+          }px`,
+          "background-position-x": `${backgroundPosition().x}px`,
+          "background-position-y": `${backgroundPosition().y}px`,
+        }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="100%"
           height="100%"
-          viewBox={`${camera.center.x - windowSize().width / 2 / camera.scale} ${camera.center.y - windowSize().height / 2 / camera.scale} ${windowSize().width / camera.scale} ${windowSize().height / camera.scale}`}
+          viewBox={`${
+            camera.center.x - windowSize().width / 2 / camera.scale
+          } ${camera.center.y - windowSize().height / 2 / camera.scale} ${
+            windowSize().width / camera.scale
+          } ${windowSize().height / camera.scale}`}
           on:click={handleClick}
           on:wheel={handleWheel}
         >
-          <For each={content.content}>{
-            item => svg(item.kind, item.shapeProps, item.otherProps)
-          }</For>
-          <Show when={checkConstraint(requiredPoints[hand.kind], hand.points.length + 1)}>
+          <For each={content.content}>
+            {(item) => svg(item.kind, item.shapeProps, item.otherProps)}
+          </For>
+          <Show
+            when={checkConstraint(
+              requiredPoints[hand.kind],
+              hand.points.length + 1
+            )}
+          >
             {svg(
               hand.kind,
               shapeProp(hand.kind, [...hand.points, snappedCursorPos()]),
-              defaultOtherProp(hand.kind),
+              defaultOtherProp(hand.kind)
             )}
           </Show>
         </svg>
       </main>
-      <div class="absolute w-4 h-4 rounded-full bg-cyan-800 opacity-20 pointer-events-none" style={{
-        top: snappedCursorScreenPos().y - 8 + "px",
-        left: snappedCursorScreenPos().x - 8 + "px",
-      }}></div>
+      <div
+        class="absolute w-4 h-4 rounded-full bg-cyan-800 opacity-20 pointer-events-none"
+        style={{
+          top: snappedCursorScreenPos().y - 8 + "px",
+          left: snappedCursorScreenPos().x - 8 + "px",
+        }}
+      ></div>
     </>
   );
 }
-
