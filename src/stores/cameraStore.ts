@@ -1,7 +1,7 @@
 import { createStore } from "solid-js/store";
-import { toWorldPos } from "../utilities/pos";
+import { asWorldPos } from "../utilities/pos";
 
 export const cameraStore = createStore({
-  center: toWorldPos({ x: 0, y: 0 }),
+  center: asWorldPos({ x: 0, y: 0 }),
   scale: 1,
 });

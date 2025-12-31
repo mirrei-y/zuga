@@ -1,20 +1,11 @@
-import { WorldPos } from "./pos";
-
-export type Kind = keyof ShapeProps | keyof OtherProps;
-export const kinds: Kind[] = ["rectangle", "ellipse", "line", "text"];
+import { WorldPos } from "~/utilities/pos";
+import { Kind } from "../kind";
 
 export type ShapeProps = {
   rectangle: { x: number; y: number; width: number; height: number };
   ellipse: { cx: number; cy: number; rx: number; ry: number };
   line: { points: WorldPos[] };
   text: { x: number; y: number };
-};
-
-export type OtherProps = {
-  rectangle: { color: string; strokeColor: string; strokeWidth: number };
-  ellipse: { color: string; strokeColor: string; strokeWidth: number };
-  line: { color: string; strokeWidth: number };
-  text: { content: string; fontSize: number; color: string };
 };
 
 export const shapeProps: { [K in Kind]: (props: WorldPos[]) => ShapeProps[K] } =
@@ -51,15 +42,4 @@ export const shapeProp = <K extends Kind>(
   points: WorldPos[]
 ): ShapeProps[K] => {
   return shapeProps[kind](points);
-};
-
-export const defaultOtherProps: { [K in Kind]: OtherProps[K] } = {
-  rectangle: { color: "transparent", strokeColor: "black", strokeWidth: 2 },
-  ellipse: { color: "transparent", strokeColor: "black", strokeWidth: 2 },
-  line: { color: "black", strokeWidth: 2 },
-  text: { content: "Text", fontSize: 16, color: "black" },
-};
-
-export const defaultOtherProp = <K extends Kind>(kind: K): OtherProps[K] => {
-  return defaultOtherProps[kind];
 };

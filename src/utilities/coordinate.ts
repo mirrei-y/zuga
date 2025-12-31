@@ -1,4 +1,4 @@
-import { ScreenPos, toScreenPos, toWorldPos, WorldPos } from "./pos";
+import { ScreenPos, asScreenPos, asWorldPos, WorldPos } from "./pos";
 
 export const screenToWorld = (
   pos: ScreenPos,
@@ -11,7 +11,7 @@ export const screenToWorld = (
   const worldY =
     pos.y / camera.scale +
     (camera.center.y - windowSize.height / 2 / camera.scale);
-  return toWorldPos({ x: worldX, y: worldY });
+  return asWorldPos({ x: worldX, y: worldY });
 };
 
 export const worldToScreen = (
@@ -25,5 +25,5 @@ export const worldToScreen = (
   const screenY =
     (pos.y - (camera.center.y - windowSize.height / 2 / camera.scale)) *
     camera.scale;
-  return toScreenPos({ x: screenX, y: screenY });
+  return asScreenPos({ x: screenX, y: screenY });
 };

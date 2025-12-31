@@ -1,5 +1,5 @@
-import { WorldPos } from "./pos";
-import { Kind } from "./props";
+import { WorldPos } from "../utilities/pos";
+import { Kind } from "./kind";
 
 export type Mode = keyof Hands;
 type Hands = {
@@ -10,7 +10,7 @@ type Hands = {
   };
   select: {
     mode: "select";
-    selecteds: string[];
+    selecteds: Set<`${string}-${string}-${string}-${string}-${string}`>;
   };
 };
 
@@ -26,7 +26,7 @@ export const defaultHand = <M extends Mode>(mode: M): Hands[M] => {
   } else {
     return {
       mode: "select",
-      selecteds: [] as string[],
+      selecteds: new Set(),
     } as Hands[M];
   }
 };

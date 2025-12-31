@@ -1,21 +1,17 @@
-import { Kind, OtherProps, ShapeProps } from "./props";
-import { WorldPos } from "./pos";
+import { WorldPos } from "../../utilities/pos";
+import { Content } from "../content";
 
-export const isColliding = <K extends Kind>(
-  kind: K,
-  shape: ShapeProps[K],
-  other: OtherProps[K],
-  pos: WorldPos
-): boolean => {
-  switch (kind) {
+export const isColliding = (content: Content, pos: WorldPos): boolean => {
+  switch (content.kind) {
     case "rectangle": {
-      const rectShape = shape as ShapeProps["rectangle"];
-      const rectOther = other as OtherProps["rectangle"];
+      const rectShape = content.shapeProps;
+      const rectOther = content.otherProps;
+
       const threshold = rectOther.strokeWidth / 2 + 10;
 
       const withinX =
-        pos.x >= rectShape.x - threshold &&
-        pos.x <= rectShape.x + rectShape.width + threshold;
+        pos.x >= content.shapeProps.x - threshold &&
+        pos.x <= content.shapeProps.x + content.shapeProps.width + threshold;
       const withinY =
         pos.y >= rectShape.y - threshold &&
         pos.y <= rectShape.y + rectShape.height + threshold;
@@ -27,11 +23,12 @@ export const isColliding = <K extends Kind>(
       const onBottomEdge =
         Math.abs(pos.y - (rectShape.y + rectShape.height)) <= threshold &&
         withinX;
+
       return onLeftEdge || onRightEdge || onTopEdge || onBottomEdge;
     }
     case "ellipse": {
-      const ellipseShape = shape as ShapeProps["ellipse"];
-      const ellipseOther = other as OtherProps["ellipse"];
+      const ellipseShape = content.shapeProps;
+      const ellipseOther = content.otherProps;
 
       const dx = pos.x - ellipseShape.cx;
       const dy = pos.y - ellipseShape.cy;
@@ -48,8 +45,8 @@ export const isColliding = <K extends Kind>(
       );
     }
     case "line": {
-      const lineShape = shape as ShapeProps["line"];
-      const lineOther = other as OtherProps["line"];
+      const lineShape = content.shapeProps;
+      const lineOther = content.otherProps;
       const points = lineShape.points;
       const threshold = lineOther.strokeWidth / 2 + 10;
 
@@ -87,10 +84,15 @@ export const isColliding = <K extends Kind>(
       return false;
     }
     case "text": {
-      return false;
+      return (
+        Math.hypot(
+          pos.x - content.shapeProps.x,
+          pos.y - content.shapeProps.y
+        ) <= 10
+      );
     }
     default:
-      kind satisfies never;
+      content satisfies never;
       return false;
   }
 };

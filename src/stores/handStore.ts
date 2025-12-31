@@ -1,7 +1,7 @@
 import { createStore } from "solid-js/store";
-import { Hand } from "~/utilities/hand";
+import { Hand } from "~/logic/hand";
 import { WorldPos } from "~/utilities/pos";
-import { Kind } from "~/utilities/props";
+import { Kind } from "~/logic/kind";
 
 export const handStore = createStore({
   mode: "draw",

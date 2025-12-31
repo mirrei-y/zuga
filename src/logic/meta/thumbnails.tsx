@@ -1,20 +1,4 @@
 import { JSX } from "solid-js";
-import { Constraint } from "./constraint";
-import { Kind } from "./props";
-
-export const readables: Record<Kind, string> = {
-  rectangle: "Rectangle",
-  ellipse: "Ellipse",
-  line: "Line",
-  text: "Text",
-};
-
-export const requiredPoints: Record<Kind, Constraint> = {
-  rectangle: { exact: 2 },
-  ellipse: { exact: 2 },
-  line: { min: 2 },
-  text: { exact: 1 },
-};
 
 export const thumbnails: Record<string, JSX.Element> = {
   rectangle: (

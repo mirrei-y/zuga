@@ -1,6 +1,6 @@
-import { readables, thumbnails } from "~/utilities/meta";
+import { thumbnails } from "~/logic/meta/thumbnails";
 import { handStore } from "~/stores/handStore";
-import { Kind, kinds } from "~/utilities/props";
+import { Kind, kinds } from "~/logic/kind";
 import { createSignal, For, JSX, Show } from "solid-js";
 import {
   TbClick,
@@ -8,7 +8,8 @@ import {
   TbLayoutSidebarLeftExpand,
   TbPencil,
 } from "solid-icons/tb";
-import { defaultHand, Hand } from "~/utilities/hand";
+import { defaultHand, Hand } from "~/logic/hand";
+import { readables } from "~/logic/meta/readables";
 
 export default function Sidebar() {
   const [hand, setHand] = handStore;
@@ -36,7 +37,7 @@ export default function Sidebar() {
     return (
       <button
         class={`p-2 rounded-md cursor-pointer transition-colors ${
-          hand.mode === "draw" && hand.kind == props.kind
+          hand.mode === "draw" && hand.kind === props.kind
             ? "bg-cyan-800 hover:bg-cyan-700 text-white"
             : "bg-gray-200 hover:bg-gray-300"
         } flex flex-row items-center gap-3`}
@@ -53,10 +54,10 @@ export default function Sidebar() {
       <aside
         class="absolute w-90 max-w-[50%] h-screen p-4 bg-white/50 border-r border-gray-200 transition-[left]"
         style={{
-          left: isOpen() ? "0px" : "-100%",
+          left: isOpen() ? "0px" : "calc(var(--spacing) * -90)",
         }}
       >
-        <div class="grid grid-cols-2 border border-gray-100 rounded-lg overflow-hidden">
+        <div class="grid grid-cols-2 rounded-lg overflow-hidden">
           <ModeButton mode="draw">
             <TbPencil size={40} />
           </ModeButton>

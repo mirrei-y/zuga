@@ -11,10 +11,7 @@ export type Constraint =
       exact: number;
     };
 
-export const checkConstraint = (
-  constraint: Constraint,
-  value: number
-): boolean => {
+export const isSatisfied = (constraint: Constraint, value: number): boolean => {
   if ("exact" in constraint) {
     return value === constraint.exact;
   }
