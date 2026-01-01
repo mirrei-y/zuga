@@ -34,7 +34,7 @@ export default function RightSidebar<K extends Kind>() {
 
   return (
     <aside
-      class="absolute w-90 max-w-[50%] h-screen p-4 bg-white/90 border-l border-gray-200 transition-[right]"
+      class="absolute w-90 max-w-[50%] h-screen p-4 bg-white/90 border-l border-slate-200 transition-[right]"
       style={{
         right: target() ? "0px" : "calc(var(--spacing) * -90)",
       }}

@@ -4,4 +4,5 @@ import { Kind } from "~/logic/kind";
 
 export const contentsStore = createStore({
   contents: {} as Record<`${string}-${string}-${string}-${string}-${string}`, Content<Kind>>,
+  rects: {} as Record<`${string}-${string}-${string}-${string}-${string}`, DOMRect>,
 });

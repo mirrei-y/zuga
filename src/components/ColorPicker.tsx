@@ -28,7 +28,7 @@ export default function ColorPicker(props: {
               onClick={() => props.onChange(swatch.value)}
               class="w-8 h-8 rounded-md p-0 cursor-pointer"
               style={{
-                border: isSelected() ? "2px solid var(--color-cyan-500)" : "1px solid var(--color-gray-300)",
+                border: isSelected() ? "2px solid var(--color-cyan-500)" : "1px solid var(--color-slate-300)",
                 background:
                   swatch.value === "transparent"
                     ? "repeating-conic-gradient(#ccc 0% 25%, white 0% 50%) 50% / 8px 8px"

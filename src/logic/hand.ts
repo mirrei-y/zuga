@@ -11,6 +11,10 @@ type Hands = {
   select: {
     mode: "select";
     selecteds: Set<`${string}-${string}-${string}-${string}-${string}`>;
+    rect: {
+      start: WorldPos;
+      end: WorldPos;
+    } | null;
   };
 };
 
@@ -27,6 +31,7 @@ export const defaultHand = <M extends Mode>(mode: M): Hands[M] => {
     return {
       mode: "select",
       selecteds: new Set(),
+      rect: null,
     } as Hands[M];
   }
 };

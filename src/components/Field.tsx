@@ -23,7 +23,7 @@ export default function Field(props: {
               type="number"
               value={props.value}
               onInput={(e) => props.onChange(parseFloat(e.currentTarget.value))}
-              class="w-full border border-gray-300 rounded px-2 py-1"
+              class="w-full border border-slate-300 rounded px-2 py-1"
             />
           </Match>
           <Match when={props.field.type === "text"}>
@@ -31,7 +31,7 @@ export default function Field(props: {
               type="text"
               value={props.value}
               onInput={(e) => props.onChange(e.currentTarget.value)}
-              class="w-full border border-gray-300 rounded px-2 py-1"
+              class="w-full border border-slate-300 rounded px-2 py-1"
             />
           </Match>
         </Switch>

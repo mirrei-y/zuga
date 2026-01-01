@@ -8,22 +8,16 @@ export const useCursorPos = () => {
   const [camera] = cameraStore;
   const windowSize = useWindowSize();
   const [pos, setPos] = createSignal(asScreenPos({ x: 0, y: 0 }));
-
-  const updatePos = (x: number, y: number) => {
-    setPos(asScreenPos({ x, y }));
-  };
-
   const world = createMemo(() => {
     return screenToWorld(pos(), camera, windowSize());
   });
 
   onMount(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      updatePos(e.clientX, e.clientY);
+      setPos(asScreenPos({ x: e.clientX, y: e.clientY }));
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-
     onCleanup(() => {
       window.removeEventListener("mousemove", handleMouseMove);
     });

@@ -9,8 +9,11 @@ import { Kind } from "~/logic/kind";
 import { useDrag } from "~/composables/useDrag";
 import { contentsStore } from "~/stores/contentsStore";
 import { cameraStore } from "~/stores/cameraStore";
-import { asWorldPos } from "~/utilities/pos";
 import { Portal } from "solid-js/web";
+import { isCollidingRectAndPoint } from "~/utilities/rectCollision";
+import { selectSingle, toggleSelection } from "~/logic/select";
+import { updateContentPoints, updatePointPosition } from "~/logic/transform";
+import { WorldPos } from "~/utilities/pos";
 
 export default function Item<K extends Kind>(props: { content: Content<K> }) {
   let ref: SVGGraphicsElement | undefined;
@@ -20,7 +23,7 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
     width: number;
     height: number;
   }>();
-  const [hand, setHand] = handStore;
+  const [hand] = handStore;
   const [contents, setContents] = contentsStore;
   const [camera] = cameraStore;
 
@@ -28,12 +31,7 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
   const sampledWorldCursorPos = useSampled(cursorPos.world, 100);
   const isHovering = createMemo(() => {
     if (!rect()) return false;
-    if (
-      rect()!.x - 10 <= sampledWorldCursorPos().x &&
-      sampledWorldCursorPos().x <= rect()!.x + rect()!.width + 10 &&
-      rect()!.y - 10 <= sampledWorldCursorPos().y &&
-      sampledWorldCursorPos().y <= rect()!.y + rect()!.height + 10
-    ) {
+    if (isCollidingRectAndPoint(rect()!, sampledWorldCursorPos())) {
       return isColliding(props.content, sampledWorldCursorPos());
     }
     return false;
@@ -43,7 +41,6 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
     if (ref) {
       const bbox = ref.getBBox();
       const strokeWidth = parseFloat(getComputedStyle(ref).strokeWidth) || 0;
-
       const expandedBBox = {
         x: bbox.x - strokeWidth / 2,
         y: bbox.y - strokeWidth / 2,
@@ -52,29 +49,27 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
       };
 
       setRect(expandedBBox);
+      setContents({
+        rects: {
+          ...contents.rects,
+          [props.content.uuid]: expandedBBox,
+        },
+      });
     }
   });
 
+  const [originalPoints, setOriginalPoints] = createSignal<WorldPos[]>([]);
   const startBodyDrag = useDrag({
     onStart: () => {
-      return props.content.points;
+      setOriginalPoints([...props.content.points]);
     },
-    onMove: (start, current) => {
-      if (hand.mode !== "select") return;
-      const dx = (current.x - start.x) / camera.scale;
-      const dy = (current.y - start.y) / camera.scale;
-      const points = props.content.points.map((pt) => {
-        return asWorldPos({ x: pt.x + dx, y: pt.y + dy });
-      });
-      setContents({
-        contents: {
-          ...contents.contents,
-          [props.content.uuid]: {
-            ...props.content,
-            points,
-          },
-        },
-      });
+    onMove: (delta) => {
+      updateContentPoints(
+        props.content.uuid,
+        originalPoints(),
+        delta,
+        camera.scale
+      );
     },
   });
 
@@ -84,15 +79,9 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
     if (isHovering()) {
       e.stopPropagation();
       if (e.shiftKey) {
-        const newSelecteds = new Set(hand.selecteds);
-        if (hand.selecteds.has(props.content.uuid)) {
-          newSelecteds.delete(props.content.uuid);
-        } else {
-          newSelecteds.add(props.content.uuid);
-        }
-        setHand({ selecteds: newSelecteds });
+        toggleSelection(props.content.uuid);
       } else {
-        setHand({ selecteds: new Set([props.content.uuid]) });
+        selectSingle(props.content.uuid);
         startBodyDrag(cursorPos.screen());
       }
     }
@@ -101,26 +90,27 @@ export default function Item<K extends Kind>(props: { content: Content<K> }) {
   const [draggingPointIndex, setDraggingPointIndex] = createSignal<
     number | null
   >(null);
+  const [originalPoint, setOriginalPoint] = createSignal<WorldPos | null>(null);
+
   const startPointDrag = useDrag({
-    onStart: () => {},
-    onMove: (start, current) => {
-      if (hand.mode !== "select") return;
-      const dx = (current.x - start.x) / camera.scale;
-      const dy = (current.y - start.y) / camera.scale;
-      const points = [...props.content.points];
-      points[draggingPointIndex()!] = asWorldPos({
-        x: points[draggingPointIndex()!].x + dx,
-        y: points[draggingPointIndex()!].y + dy,
-      });
-      setContents({
-        contents: {
-          ...contents.contents,
-          [props.content.uuid]: {
-            ...props.content,
-            points,
-          },
-        },
-      });
+    onStart: () => {
+      const index = draggingPointIndex();
+      if (index !== null && props.content.points[index]) {
+        setOriginalPoint({ ...props.content.points[index] });
+      }
+    },
+    onMove: (delta) => {
+      const index = draggingPointIndex();
+      const origin = originalPoint();
+      if (index !== null && origin) {
+        updatePointPosition(
+          props.content.uuid,
+          index,
+          origin,
+          delta,
+          camera.scale
+        );
+      }
     },
   });
 

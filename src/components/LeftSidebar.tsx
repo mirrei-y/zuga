@@ -24,7 +24,7 @@ export default function Sidebar() {
         class={`p-2 cursor-pointer transition-colors ${
           hand.mode == props.mode
             ? "bg-cyan-800 hover:bg-cyan-700 text-white"
-            : "bg-gray-200 hover:bg-gray-300"
+            : "bg-slate-200 hover:bg-slate-300"
         } flex flex-row items-center justify-center`}
         onClick={() => setHand(defaultHand(props.mode))}
       >
@@ -39,7 +39,7 @@ export default function Sidebar() {
         class={`p-2 rounded-md cursor-pointer transition-colors ${
           hand.mode === "draw" && hand.kind === props.kind
             ? "bg-cyan-800 hover:bg-cyan-700 text-white"
-            : "bg-gray-200 hover:bg-gray-300"
+            : "bg-slate-200 hover:bg-slate-300"
         } flex flex-row items-center gap-3`}
         onClick={() => setHand({ ...defaultHand("draw"), kind: props.kind })}
       >
@@ -52,7 +52,7 @@ export default function Sidebar() {
   return (
     <>
       <aside
-        class="absolute w-90 max-w-[50%] h-screen p-4 bg-white/90 border-r border-gray-200 transition-[left]"
+        class="absolute w-90 max-w-[50%] h-screen p-4 bg-white/90 border-r border-slate-200 transition-[left]"
         style={{
           left: isOpen() ? "0px" : "calc(var(--spacing) * -90)",
         }}
@@ -65,13 +65,13 @@ export default function Sidebar() {
             <TbClick size={40} />
           </ModeButton>
         </div>
-        <hr class="my-4 border-gray-200" />
+        <hr class="my-4 border-slate-200" />
         <div class="grid grid-cols-2 h-min gap-2 p-2">
           <For each={kinds}>{(kind) => <KindButton kind={kind} />}</For>
         </div>
       </aside>
       <button
-        class="absolute bottom-4 left-4 p-2 rounded-md bg-gray-200 hover:bg-gray-300 transition-colors"
+        class="absolute bottom-4 left-4 p-2 rounded-md bg-slate-200 hover:bg-slate-300 transition-colors"
         onClick={() => {
           setIsOpen((s) => !s);
         }}

@@ -3,11 +3,10 @@ import { useDrag } from "~/composables/useDrag";
 import { useSnappedCursorPos } from "~/composables/useSnappedCursorPos";
 import { useWindowSize } from "~/composables/useWindowSize";
 import { addPoint, cancelDrawing, finishIfPossible } from "~/logic/draw";
-import { deleteSelection, deselectAll } from "~/logic/select";
+import { deleteSelection, deselectAll, selectByRect } from "~/logic/select";
 import { cameraStore } from "~/stores/cameraStore";
 import { clickStore } from "~/stores/clickStore";
 import { contentsStore } from "~/stores/contentsStore";
-import { gridStore } from "~/stores/gridStore";
 import { handStore } from "~/stores/handStore";
 import { isSatisfied } from "~/utilities/constraint";
 import { screenToWorld, worldToScreen } from "~/utilities/coordinate";
@@ -21,9 +20,8 @@ import { useHotkey } from "~/composables/useHotkey";
 import { useCursorPos } from "~/composables/useCursorPos";
 
 export default function Canvas() {
-  const [grid] = gridStore;
-  const [hand] = handStore;
-  const [content] = contentsStore;
+  const [hand, setHand] = handStore;
+  const [contents] = contentsStore;
   const [camera, setCamera] = cameraStore;
   const [, setClick] = clickStore;
   const windowSize = useWindowSize();
@@ -31,24 +29,12 @@ export default function Canvas() {
   const cursorPos = useCursorPos();
 
   const gridSize = createMemo(() => ({
-    width: grid.width * camera.scale,
-    height: grid.height * camera.scale,
+    width: 30 * camera.scale,
+    height: 30 * camera.scale,
   }));
-  const gridPosition = createMemo(() => {
-    const worldOriginScreen = worldToScreen(
-      asWorldPos({ x: 0, y: 0 }),
-      camera,
-      windowSize()
-    );
-    return {
-      x:
-        ((worldOriginScreen.x % gridSize().width) + gridSize().width) %
-        gridSize().width,
-      y:
-        ((worldOriginScreen.y % gridSize().height) + gridSize().height) %
-        gridSize().height,
-    };
-  });
+  const gridPosition = createMemo(() =>
+    worldToScreen(asWorldPos({ x: 0, y: 0 }), camera, windowSize())
+  );
 
   const northWest = () =>
     screenToWorld(asScreenPos({ x: 0, y: 0 }), camera, windowSize());
@@ -76,14 +62,47 @@ export default function Canvas() {
     onStart: () => {
       setCameraBeforePan({ ...camera });
     },
-    onMove: (start, current) => {
-      const dx = (start.x - current.x) / cameraBeforePan().scale;
-      const dy = (start.y - current.y) / cameraBeforePan().scale;
+    onMove: (delta) => {
       setCamera({
         center: asWorldPos({
-          x: cameraBeforePan().center.x + dx,
-          y: cameraBeforePan().center.y + dy,
+          x: cameraBeforePan().center.x - delta.x / camera.scale,
+          y: cameraBeforePan().center.y - delta.y / camera.scale,
         }),
+      });
+    },
+  });
+
+  const startRectSelection = useDrag({
+    onStart: () => {
+      setHand({
+        rect: {
+          start: cursorPos.world(),
+          end: cursorPos.world(),
+        },
+      });
+    },
+    onMove: () => {
+      if (hand.mode !== "select") return;
+      const rectSelection = {
+        x: hand.rect!.start.x,
+        y: hand.rect!.start.y,
+        width: cursorPos.world().x - hand.rect!.start.x,
+        height: cursorPos.world().y - hand.rect!.start.y,
+      };
+
+      selectByRect(rectSelection);
+
+      setHand({
+        rect: {
+          start: hand.rect!.start,
+          end: cursorPos.world(),
+        },
+      });
+    },
+    onEnd: () => {
+      if (hand.mode !== "select") return;
+      setHand({
+        rect: null,
       });
     },
   });
@@ -93,6 +112,7 @@ export default function Canvas() {
       switch (e.button) {
         case 0:
           deselectAll();
+          startRectSelection(cursorPos.screen());
           return;
         case 1:
           e.preventDefault();
@@ -148,7 +168,7 @@ export default function Canvas() {
 
   return (
     <main
-      class="w-full h-screen text-gray-100 bg-grid"
+      class="w-full h-screen text-slate-100 bg-grid slate"
       style={{
         "background-size": `${gridSize().width}px ${gridSize().height}px`,
         "background-position-x": `${gridPosition().x}px`,
@@ -171,12 +191,26 @@ export default function Canvas() {
         onWheel={handleWheel}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <For each={Object.values(content.contents)}>
+        <For each={Object.values(contents.contents)}>
           {(content) => <Item content={content} />}
         </For>
 
         <Show when={currentContent()}>
           {(content) => <Svg content={content()} class="opacity-50" />}
+        </Show>
+
+        <Show when={hand.mode === "select" && hand.rect}>
+          {(rect) => (
+            <rect
+              x={Math.min(rect().start.x, rect().end.x)}
+              y={Math.min(rect().start.y, rect().end.y)}
+              width={Math.abs(rect().end.x - rect().start.x)}
+              height={Math.abs(rect().end.y - rect().start.y)}
+              fill="rgba(100, 149, 237, 0.3)"
+              stroke="cornflowerblue"
+              stroke-dasharray="4 4"
+            />
+          )}
         </Show>
 
         <g id="rect-portal"></g>

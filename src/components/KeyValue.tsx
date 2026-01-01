@@ -6,7 +6,7 @@ export default function KeyValue(props: {
 }) {
   return (
     <div class="flex flex-col justify-between gap-2">
-      <span class="text-gray-600">{props.key}</span>
+      <span class="text-slate-600">{props.key}</span>
       <div>{props.children}</div>
     </div>
   );
