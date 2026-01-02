@@ -362,52 +362,35 @@ export default function Canvas() {
           {(content) => <Svg content={content()} class="opacity-50" />}
         </Show>
 
-        <Show when={hand.mode === "select" && hand.rect}>
-          {(rect) => (
-            <rect
-              x={rect().position.x}
-              y={rect().position.y}
-              width={rect().size.x}
-              height={rect().size.y}
-              fill="color-mix(in oklab, var(--color-cyan-500) 20%, transparent)"
-              stroke="var(--color-cyan-500)"
-              stroke-width={2 / camera.scale}
-              stroke-dasharray={`${4 / camera.scale} ${4 / camera.scale}`}
-            />
-          )}
-        </Show>
-
-        <Portal mount={document.getElementById("rect-portal")!} isSVG>
-          <For each={Object.values(contents.contents)}>
-            {(content) => (
-              <Show
-                when={
-                  (hand.mode === "select" &&
-                    hand.selecteds.includes(content.uuid)) ||
-                  (hoveredId() === content.uuid && hand.mode === "select")
+        <For each={Object.values(contents.contents)}>
+          {(content) => (
+            <Show
+              when={
+                (hand.mode === "select" &&
+                  hand.selecteds.includes(content.uuid)) ||
+                (hoveredId() === content.uuid && hand.mode === "select")
+              }
+            >
+              <rect
+                x={padRect(contents.rects[content.uuid], 10).position.x}
+                y={padRect(contents.rects[content.uuid], 10).position.y}
+                width={padRect(contents.rects[content.uuid], 10).size.x}
+                height={padRect(contents.rects[content.uuid], 10).size.y}
+                fill="transparent"
+                stroke={
+                  hand.mode === "select" &&
+                  hand.selecteds.includes(content.uuid)
+                    ? "var(--color-cyan-500)"
+                    : "var(--color-cyan-700)"
                 }
-              >
-                <rect
-                  x={padRect(contents.rects[content.uuid], 10).position.x}
-                  y={padRect(contents.rects[content.uuid], 10).position.y}
-                  width={padRect(contents.rects[content.uuid], 10).size.x}
-                  height={padRect(contents.rects[content.uuid], 10).size.y}
-                  fill="transparent"
-                  stroke={
-                    hand.mode === "select" &&
-                    hand.selecteds.includes(content.uuid)
-                      ? "var(--color-cyan-500)"
-                      : "var(--color-cyan-700)"
-                  }
-                  stroke-width={2 / camera.scale}
-                  on:mousedown={(e) => handleItemMousedown(e, content.uuid)}
-                />
-              </Show>
-            )}
-          </For>
-        </Portal>
+                stroke-width={2 / camera.scale}
+                on:mousedown={(e) => handleItemMousedown(e, content.uuid)}
+              />
+            </Show>
+          )}
+        </For>
 
-        <Portal mount={document.getElementById("point-portal")!} isSVG>
+        <g>
           <For each={Object.values(contents.contents)}>
             {(content) => (
               <Show
@@ -433,10 +416,22 @@ export default function Canvas() {
               </Show>
             )}
           </For>
-        </Portal>
 
-        <g id="rect-portal"></g>
-        <g id="point-portal"></g>
+          <Show when={hand.mode === "select" && hand.rect}>
+            {(rect) => (
+              <rect
+                x={rect().position.x}
+                y={rect().position.y}
+                width={rect().size.x}
+                height={rect().size.y}
+                fill="color-mix(in oklab, var(--color-cyan-500) 20%, transparent)"
+                stroke="var(--color-cyan-500)"
+                stroke-width={2 / camera.scale}
+                stroke-dasharray={`${4 / camera.scale} ${4 / camera.scale}`}
+              />
+            )}
+          </Show>
+        </g>
       </svg>
     </main>
   );
