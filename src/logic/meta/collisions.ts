@@ -12,20 +12,20 @@ export const isColliding = (content: Content<Kind>, pos: WorldPos): boolean => {
 
       const withinX =
         pos.x >= shape.position.x - threshold &&
-        pos.x <= shape.position.x + shape.width + threshold;
+        pos.x <= shape.position.x + shape.size.x + threshold;
       const withinY =
         pos.y >= shape.position.y - threshold &&
-        pos.y <= shape.position.y + shape.height + threshold;
+        pos.y <= shape.position.y + shape.size.y + threshold;
 
       const onLeftEdge =
         Math.abs(pos.x - shape.position.x) <= threshold && withinY;
       const onRightEdge =
-        Math.abs(pos.x - (shape.position.x + shape.width)) <= threshold &&
+        Math.abs(pos.x - (shape.position.x + shape.size.x)) <= threshold &&
         withinY;
       const onTopEdge =
         Math.abs(pos.y - shape.position.y) <= threshold && withinX;
       const onBottomEdge =
-        Math.abs(pos.y - (shape.position.y + shape.height)) <= threshold &&
+        Math.abs(pos.y - (shape.position.y + shape.size.y)) <= threshold &&
         withinX;
 
       return (
@@ -41,8 +41,8 @@ export const isColliding = (content: Content<Kind>, pos: WorldPos): boolean => {
 
       const dx = pos.x - shape.center.x;
       const dy = pos.y - shape.center.y;
-      const rx = shape.rx;
-      const ry = shape.ry;
+      const rx = shape.radius.x;
+      const ry = shape.radius.y;
       const distance = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
 
       const strokeAdjustmentX = (content.props.strokeWidth / 2 + 10) / rx;

@@ -1,9 +1,9 @@
-import { ScreenPos } from "~/utilities/pos";
+import { DeltaPos, ScreenPos } from "~/utilities/pos";
 
 export function useDrag(handlers: {
   onStart?: (abort: () => void) => void;
-  onMove?: (delta: { x: number; y: number }, abort: () => void) => void;
-  onEnd?: (delta: { x: number; y: number }, abort: () => void) => void;
+  onMove?: (delta: DeltaPos, abort: () => void) => void;
+  onEnd?: (delta: DeltaPos, abort: () => void) => void;
 }) {
   const startDrag = (start: ScreenPos) => {
     const abort = () => {

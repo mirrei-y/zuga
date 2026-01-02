@@ -1,11 +1,11 @@
 import { contentsStore } from "~/stores/contentsStore";
-import { asWorldPos, WorldPos } from "~/utilities/pos";
+import { asWorldPos, DeltaPos, WorldPos } from "~/utilities/pos";
 import { Uuid } from "~/utilities/uuid";
 
 export const updateContentPoints = (
   uuid: Uuid,
   originalPoints: WorldPos[],
-  delta: { x: number; y: number },
+  delta: DeltaPos,
   cameraScale: number
 ) => {
   const [contents, setContents] = contentsStore;
@@ -34,7 +34,7 @@ export const updatePointPosition = (
   uuid: Uuid,
   pointIndex: number,
   originalPoint: WorldPos,
-  delta: { x: number; y: number },
+  delta: DeltaPos,
   cameraScale: number
 ) => {
   const [contents, setContents] = contentsStore;

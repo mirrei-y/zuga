@@ -1,6 +1,8 @@
 const screenSymbol = Symbol();
 const worldSymbol = Symbol();
 
+export type NaivePos = { x: number; y: number };
+export type DeltaPos = { x: number; y: number };
 export type ScreenPos = { x: number; y: number } & { [screenSymbol]: unknown };
 export type WorldPos = { x: number; y: number } & { [worldSymbol]: unknown };
 

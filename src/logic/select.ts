@@ -1,7 +1,7 @@
 import { contentsStore } from "~/stores/contentsStore";
 import { handStore } from "~/stores/handStore";
 import { batch } from "solid-js";
-import { isCollidingRectAndRect } from "~/utilities/rectCollision";
+import { isCollidingRectAndRect, Rect } from "~/utilities/rect";
 import { Uuid } from "~/utilities/uuid";
 
 export const deselectAll = () => {
@@ -25,12 +25,7 @@ export const deleteSelection = () => {
   });
 };
 
-export const selectByRect = (rectSelection: {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}) => {
+export const selectByRect = (rectSelection: Rect) => {
   const [hand, setHand] = handStore;
   const [contents] = contentsStore;
   if (hand.mode !== "select") return;

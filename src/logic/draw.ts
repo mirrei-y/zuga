@@ -3,10 +3,8 @@ import { handStore } from "~/stores/handStore";
 import { Content } from "~/logic/content";
 import { isSatisfied } from "~/utilities/constraint";
 import { WorldPos } from "~/utilities/pos";
-import { batch } from "solid-js";
 import { requiredPoints } from "./meta/requiredPoints";
 import { defaultProps } from "./meta/props";
-import { useClick } from "~/composables/useClick";
 
 const finish = () => {
   const [hand, setHand] = handStore;

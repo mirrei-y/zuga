@@ -27,7 +27,12 @@ import { defaultProps } from "~/logic/meta/props";
 import { Content } from "~/logic/content";
 import { useHotkey } from "~/composables/useHotkey";
 import { useCursorPos } from "~/composables/useCursorPos";
-import { isCollidingRectAndPoint } from "~/utilities/rectCollision";
+import {
+  createRectFromTwoPoints,
+  isCollidingRectAndPoint,
+  normalizeRect,
+  padRect,
+} from "~/utilities/rect";
 import { isColliding } from "~/logic/meta/collisions";
 import { useSampled } from "~/composables/useDebounced";
 import { Portal } from "solid-js/web";
@@ -82,7 +87,7 @@ export default function Canvas() {
       const rect = contents.rects[id];
       if (!rect) continue;
       if (
-        isCollidingRectAndPoint(rect, cursor) &&
+        isCollidingRectAndPoint(padRect(rect, 10), cursor) &&
         isColliding(contents.contents[id], cursor)
       ) {
         return id;
@@ -106,31 +111,20 @@ export default function Canvas() {
     },
   });
 
+  const [rectSelectionOrigin, setRectSelectionOrigin] =
+    createSignal<WorldPos | null>(null);
   const startRectSelection = useDrag({
     onStart: () => {
-      setHand({
-        rect: {
-          start: cursorPos.world(),
-          end: cursorPos.world(),
-        },
-      });
+      setRectSelectionOrigin(cursorPos.world());
     },
     onMove: () => {
       if (hand.mode !== "select") return;
-      const rectSelection = {
-        x: hand.rect!.start.x,
-        y: hand.rect!.start.y,
-        width: cursorPos.world().x - hand.rect!.start.x,
-        height: cursorPos.world().y - hand.rect!.start.y,
-      };
-
+      const rectSelection = normalizeRect(
+        createRectFromTwoPoints(rectSelectionOrigin()!, cursorPos.world())
+      );
       selectByRect(rectSelection);
-
       setHand({
-        rect: {
-          start: hand.rect!.start,
-          end: cursorPos.world(),
-        },
+        rect: rectSelection,
       });
     },
     onEnd: () => {
@@ -292,27 +286,19 @@ export default function Canvas() {
   const updateRect = (id: Uuid, el: SVGGraphicsElement) => {
     const bbox = el.getBBox();
     const strokeWidth = parseFloat(getComputedStyle(el).strokeWidth) || 0;
-    const expandedBBox = {
-      x: bbox.x - strokeWidth / 2,
-      y: bbox.y - strokeWidth / 2,
-      width: bbox.width + strokeWidth,
-      height: bbox.height + strokeWidth,
-    };
-    const current = contents.rects[id];
-    if (
-      !current ||
-      current.x !== expandedBBox.x ||
-      current.y !== expandedBBox.y ||
-      current.width !== expandedBBox.width ||
-      current.height !== expandedBBox.height
-    ) {
-      setContents({
-        rects: {
-          ...contents.rects,
-          [id]: expandedBBox,
-        },
-      });
-    }
+    const expandedBBox = padRect(
+      {
+        position: { x: bbox.x, y: bbox.y },
+        size: { x: bbox.width, y: bbox.height },
+      },
+      strokeWidth / 2
+    );
+    setContents({
+      rects: {
+        ...contents.rects,
+        [id]: expandedBBox,
+      },
+    });
   };
 
   return (
@@ -362,10 +348,10 @@ export default function Canvas() {
         <Show when={hand.mode === "select" && hand.rect}>
           {(rect) => (
             <rect
-              x={Math.min(rect().start.x, rect().end.x)}
-              y={Math.min(rect().start.y, rect().end.y)}
-              width={Math.abs(rect().end.x - rect().start.x)}
-              height={Math.abs(rect().end.y - rect().start.y)}
+              x={rect().position.x}
+              y={rect().position.y}
+              width={rect().size.x}
+              height={rect().size.y}
               fill="color-mix(in oklab, var(--color-cyan-500) 20%, transparent)"
               stroke="var(--color-cyan-500)"
               stroke-width={2 / camera.scale}
@@ -385,10 +371,10 @@ export default function Canvas() {
                 }
               >
                 <rect
-                  x={(contents.rects[content.uuid]?.x ?? 0) - 10}
-                  y={(contents.rects[content.uuid]?.y ?? 0) - 10}
-                  width={(contents.rects[content.uuid]?.width ?? 0) + 20}
-                  height={(contents.rects[content.uuid]?.height ?? 0) + 20}
+                  x={padRect(contents.rects[content.uuid], 10).position.x}
+                  y={padRect(contents.rects[content.uuid], 10).position.y}
+                  width={padRect(contents.rects[content.uuid], 10).size.x}
+                  height={padRect(contents.rects[content.uuid], 10).size.y}
                   fill="transparent"
                   stroke={
                     hand.mode === "select" &&

@@ -29,8 +29,8 @@ export const svgs: {
       <rect
         x={shape().position.x}
         y={shape().position.y}
-        width={shape().width}
-        height={shape().height}
+        width={shape().size.x}
+        height={shape().size.y}
         fill={props.props.color}
         stroke={props.props.strokeColor}
         stroke-width={props.props.strokeWidth}
@@ -44,8 +44,8 @@ export const svgs: {
       <ellipse
         cx={shape().center.x}
         cy={shape().center.y}
-        rx={shape().rx}
-        ry={shape().ry}
+        rx={shape().radius.x}
+        ry={shape().radius.y}
         fill={props.props.color}
         stroke={props.props.strokeColor}
         stroke-width={props.props.strokeWidth}

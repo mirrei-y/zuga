@@ -1,6 +1,7 @@
 import { Uuid } from "~/utilities/uuid";
 import { WorldPos } from "../utilities/pos";
 import { Kind } from "./kind";
+import { Rect } from "~/utilities/rect";
 
 export type Mode = keyof Hands;
 type Hands = {
@@ -12,10 +13,7 @@ type Hands = {
   select: {
     mode: "select";
     selecteds: Uuid[];
-    rect: {
-      start: WorldPos;
-      end: WorldPos;
-    } | null;
+    rect: Rect | null;
   };
 };
 
