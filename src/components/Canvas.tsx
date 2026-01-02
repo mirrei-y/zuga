@@ -43,7 +43,6 @@ import {
 } from "~/utilities/rect";
 import { isColliding } from "~/logic/meta/collisions";
 import { useSampled } from "~/composables/useDebounced";
-import { Portal } from "solid-js/web";
 import { updateContentPoints, updatePointPosition } from "~/logic/transform";
 import { Uuid } from "~/utilities/uuid";
 import { Kind } from "~/logic/kind";
@@ -81,8 +80,9 @@ export default function Canvas() {
       return "crosshair";
     } else if (hand.mode === "select") {
       return isDown() ? "grabbing" : "grab";
+    } else if (hand.mode === "pan") {
+      return "all-scroll";
     }
-    return "default";
   });
 
   const currentContent = () => {
@@ -247,6 +247,10 @@ export default function Canvas() {
           cancelDrawing();
           return;
       }
+    } else if (hand.mode === "pan") {
+      e.preventDefault();
+      pan(cursorPos.screen());
+      return;
     }
   };
 
@@ -390,48 +394,94 @@ export default function Canvas() {
           )}
         </For>
 
-        <g>
-          <For each={Object.values(contents.contents)}>
-            {(content) => (
-              <Show
-                when={
-                  hand.mode === "select" &&
-                  hand.selecteds.length === 1 &&
-                  hand.selecteds[0] === content.uuid
-                }
-              >
-                <Index each={content.points}>
-                  {(pt, index) => (
-                    <circle
-                      cx={pt().x}
-                      cy={pt().y}
-                      r={6 / camera.scale}
-                      fill="var(--color-white)"
-                      stroke="var(--color-cyan-500)"
-                      stroke-width={2 / camera.scale}
-                      onMouseDown={(e) => handlePointMousedown(e, index)}
-                    />
-                  )}
-                </Index>
-              </Show>
-            )}
-          </For>
-
-          <Show when={hand.mode === "select" && hand.rect}>
-            {(rect) => (
-              <rect
-                x={rect().position.x}
-                y={rect().position.y}
-                width={rect().size.x}
-                height={rect().size.y}
-                fill="color-mix(in oklab, var(--color-cyan-500) 20%, transparent)"
-                stroke="var(--color-cyan-500)"
-                stroke-width={2 / camera.scale}
-                stroke-dasharray={`${4 / camera.scale} ${4 / camera.scale}`}
+        <Show when={snappedCursorPos.targetLine().x}>
+          {(line) => (
+            <>
+              <circle
+                cx={line().anchor.x}
+                cy={line().anchor.y}
+                r={3 / camera.scale}
+                fill="var(--color-orange-400)"
               />
-            )}
-          </Show>
-        </g>
+              <line
+                x1={line().x}
+                y1={northWest().y}
+                x2={line().x}
+                y2={southEast().y}
+                stroke="var(--color-orange-400)"
+                stroke-width={1 / camera.scale}
+                stroke-dasharray={`${10 / camera.scale} ${
+                  10 / camera.scale
+                }`}
+              />
+            </>
+          )}
+        </Show>
+
+        <Show when={snappedCursorPos.targetLine().y}>
+          {(line) => (
+            <>
+              <circle
+                cx={line().anchor.x}
+                cy={line().anchor.y}
+                r={3 / camera.scale}
+                fill="var(--color-orange-400)"
+              />
+              <line
+                x1={northWest().x}
+                y1={line().y}
+                x2={southEast().x}
+                y2={line().y}
+                stroke="var(--color-orange-400)"
+                stroke-width={1 / camera.scale}
+                stroke-dasharray={`${10 / camera.scale} ${
+                  10 / camera.scale
+                }`}
+              />
+            </>
+          )}
+        </Show>
+
+        <For each={Object.values(contents.contents)}>
+          {(content) => (
+            <Show
+              when={
+                hand.mode === "select" &&
+                hand.selecteds.length === 1 &&
+                hand.selecteds[0] === content.uuid
+              }
+            >
+              <Index each={content.points}>
+                {(pt, index) => (
+                  <circle
+                    cx={pt().x}
+                    cy={pt().y}
+                    r={6 / camera.scale}
+                    fill="var(--color-white)"
+                    stroke="var(--color-cyan-500)"
+                    stroke-width={2 / camera.scale}
+                    onMouseDown={(e) => handlePointMousedown(e, index)}
+                  />
+                )}
+              </Index>
+            </Show>
+          )}
+        </For>
+
+        <Show when={hand.mode === "select" && hand.rect}>
+          {(rect) => (
+            <rect
+              x={rect().position.x}
+              y={rect().position.y}
+              width={rect().size.x}
+              height={rect().size.y}
+              fill="color-mix(in oklab, var(--color-cyan-500) 20%, transparent)"
+              stroke="var(--color-cyan-500)"
+              stroke-width={2 / camera.scale}
+              stroke-dasharray={`${4 / camera.scale} ${4 / camera.scale}`}
+            />
+          )}
+        </Show>
       </svg>
     </main>
   );

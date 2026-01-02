@@ -3,12 +3,13 @@ import { handStore } from "~/stores/handStore";
 import { Kind, kinds } from "~/logic/kind";
 import { createSignal, For, JSX } from "solid-js";
 import {
-  TbClick,
+  TbHandMove,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
   TbPencil,
+  TbZoomPan,
 } from "solid-icons/tb";
-import { defaultHand, Hand } from "~/logic/hand";
+import { defaultHand, Mode } from "~/logic/hand";
 import { names } from "~/logic/meta/names";
 
 export default function Sidebar() {
@@ -16,15 +17,15 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = createSignal(true);
 
   const ModeButton = (props: {
-    mode: Hand["mode"];
+    mode: Mode;
     children: JSX.Element;
   }): JSX.Element => {
     return (
       <button
         class={`p-2 cursor-pointer transition-colors ${
           hand.mode == props.mode
-            ? "bg-cyan-800 hover:bg-cyan-700 text-white"
-            : "bg-slate-200 hover:bg-slate-300"
+            ? "bg-cyan-800 hover:bg-cyan-700 active:bg-cyan-600 text-white"
+            : "bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white"
         } flex flex-row items-center justify-center`}
         onClick={() => setHand(defaultHand(props.mode))}
       >
@@ -38,8 +39,8 @@ export default function Sidebar() {
       <button
         class={`p-2 rounded-md cursor-pointer transition-colors ${
           hand.mode === "draw" && hand.kind === props.kind
-            ? "bg-cyan-800 hover:bg-cyan-700 text-white"
-            : "bg-slate-200 hover:bg-slate-300"
+            ? "bg-cyan-800 hover:bg-cyan-700 active:bg-cyan-600 text-white"
+            : "bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white"
         } flex flex-row items-center gap-3`}
         onClick={() => setHand({ ...defaultHand("draw"), kind: props.kind })}
       >
@@ -57,12 +58,15 @@ export default function Sidebar() {
           left: isOpen() ? "0px" : "calc(var(--spacing) * -90)",
         }}
       >
-        <div class="grid grid-cols-2 rounded-lg overflow-hidden">
+        <div class="grid grid-cols-3 rounded-lg overflow-hidden">
           <ModeButton mode="draw">
             <TbPencil size={40} />
           </ModeButton>
           <ModeButton mode="select">
-            <TbClick size={40} />
+            <TbHandMove size={40} />
+          </ModeButton>
+          <ModeButton mode="pan">
+            <TbZoomPan size={40} />
           </ModeButton>
         </div>
         <hr class="my-4 border-slate-200" />

@@ -15,22 +15,28 @@ type Hands = {
     selecteds: Uuid[];
     rect: Rect | null;
   };
+  pan: {
+    mode: "pan";
+  };
 };
 
 export type Hand = Hands[Mode];
 
 export const defaultHand = <M extends Mode>(mode: M): Hands[M] => {
-  if (mode === "draw") {
-    return {
-      mode: "draw",
-      kind: "rectangle",
-      points: [] as WorldPos[],
-    } as Hands[M];
-  } else {
-    return {
-      mode: "select",
-      selecteds: [] as Uuid[],
-      rect: null,
-    } as Hands[M];
+  switch (mode) {
+    case "draw":
+      return {
+        mode: "draw",
+        kind: "rectangle",
+        points: [] as WorldPos[],
+      } as Hands[M];
+    case "select":
+      return {
+        mode: "select",
+        selecteds: [] as Uuid[],
+        rect: null,
+      } as Hands[M];
+    case "pan":
+      return { mode: "pan" } as Hands[M];
   }
 };

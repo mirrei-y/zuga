@@ -1,6 +1,7 @@
 import { JSX } from "solid-js";
+import { Kind } from "../kind";
 
-export const thumbnails: Record<string, JSX.Element> = {
+export const thumbnails: Record<Kind, JSX.Element> = {
   rectangle: (
     <svg width="40" height="40">
       <rect

@@ -75,6 +75,8 @@ export const svgs: {
         y={shape().position.y}
         font-size={props.props.fontSize + "px"}
         fill={props.props.color}
+        text-anchor="middle"
+        dominant-baseline="middle"
         {...propsExcluded(props)}
       >
         {props.props.content}
