@@ -1,12 +1,12 @@
 import { contentsStore } from "~/stores/contentsStore";
 import { handStore } from "~/stores/handStore";
-import { clickStore } from "~/stores/clickStore";
 import { Content } from "~/logic/content";
 import { isSatisfied } from "~/utilities/constraint";
 import { WorldPos } from "~/utilities/pos";
 import { batch } from "solid-js";
 import { requiredPoints } from "./meta/requiredPoints";
 import { defaultProps } from "./meta/props";
+import { useClick } from "~/composables/useClick";
 
 const finish = () => {
   const [hand, setHand] = handStore;
@@ -28,52 +28,47 @@ const finish = () => {
   setHand({ points: [] });
 };
 
-export const finishIfPossible = (lastPos: WorldPos) => {
+export const finishIfPossible = (lastPos?: WorldPos) => {
   const [hand, setHand] = handStore;
 
   if (hand.mode !== "draw") return;
+  if (lastPos) {
+    if (
+      isSatisfied(requiredPoints[hand.kind], hand.points.length + 1) &&
+      hand.points.at(-1) &&
+      hand.points.at(-1)!.x !== lastPos.x &&
+      hand.points.at(-1)!.y !== lastPos.y
+    ) {
+      setHand({
+        points: [...hand.points, lastPos],
+      });
+      finish();
+    }
+  } else {
+    if (isSatisfied(requiredPoints[hand.kind], hand.points.length)) {
+      finish();
+    }
+  }
+};
+
+export const finishIfRequired = () => {
+  const [hand] = handStore;
+
+  if (hand.mode !== "draw") return;
   if (
-    isSatisfied(requiredPoints[hand.kind], hand.points.length + 1) &&
-    hand.points.at(-1) &&
-    hand.points.at(-1)!.x !== lastPos.x &&
-    hand.points.at(-1)!.y !== lastPos.y
+    isSatisfied(requiredPoints[hand.kind], hand.points.length) &&
+    !isSatisfied(requiredPoints[hand.kind], hand.points.length + 1)
   ) {
-    setHand({
-      points: [...hand.points, lastPos],
-    });
     finish();
   }
 };
 
 export const addPoint = (pos: WorldPos) => {
-  batch(() => {
-    const [hand, setHand] = handStore;
-    const [click] = clickStore;
+  const [hand, setHand] = handStore;
+  if (hand.mode !== "draw") return;
 
-    if (hand.mode !== "draw") return;
-    const isDoubleClick = performance.now() - click.lastClickedAt < 300;
-
-    if (
-      !isDoubleClick &&
-      hand.points.at(-1)?.x === pos.x &&
-      hand.points.at(-1)?.y === pos.y
-    ) {
-      return;
-    }
-
-    if (!isDoubleClick) {
-      setHand({
-        points: [...hand.points, pos],
-      });
-    }
-
-    if (
-      isSatisfied(requiredPoints[hand.kind], hand.points.length) &&
-      (!isSatisfied(requiredPoints[hand.kind], hand.points.length + 1) ||
-        isDoubleClick)
-    ) {
-      finish();
-    }
+  setHand({
+    points: [...hand.points, pos],
   });
 };
 

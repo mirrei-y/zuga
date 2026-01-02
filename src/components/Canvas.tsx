@@ -2,7 +2,12 @@ import { createMemo, createSignal, For, Show, Index, onMount } from "solid-js";
 import { useDrag } from "~/composables/useDrag";
 import { useSnappedCursorPos } from "~/composables/useSnappedCursorPos";
 import { useWindowSize } from "~/composables/useWindowSize";
-import { addPoint, cancelDrawing, finishIfPossible } from "~/logic/draw";
+import {
+  addPoint,
+  cancelDrawing,
+  finishIfPossible,
+  finishIfRequired,
+} from "~/logic/draw";
 import {
   deleteSelection,
   deselectAll,
@@ -11,7 +16,6 @@ import {
   toggleSelection,
 } from "~/logic/select";
 import { cameraStore } from "~/stores/cameraStore";
-import { clickStore } from "~/stores/clickStore";
 import { contentsStore } from "~/stores/contentsStore";
 import { handStore } from "~/stores/handStore";
 import { isSatisfied } from "~/utilities/constraint";
@@ -30,12 +34,13 @@ import { Portal } from "solid-js/web";
 import { updateContentPoints, updatePointPosition } from "~/logic/transform";
 import { Uuid } from "~/utilities/uuid";
 import { Kind } from "~/logic/kind";
+import { useClick } from "~/composables/useClick";
 
 export default function Canvas() {
   const [hand, setHand] = handStore;
   const [contents, setContents] = contentsStore;
   const [camera, setCamera] = cameraStore;
-  const [, setClick] = clickStore;
+  const { isDown, lastReleasedAt } = useClick();
   const windowSize = useWindowSize();
   const snappedCursorPos = useSnappedCursorPos();
   const cursorPos = useCursorPos();
@@ -143,7 +148,7 @@ export default function Canvas() {
     onStart: () => {
       if (hand.mode !== "select") return;
       setItemDragOriginals(
-        hand.selecteds.map((uuid) => contents.contents[uuid])
+        hand.selecteds.map((uuid) => contents.contents[uuid]).filter(Boolean)
       );
     },
     onMove: (delta) => {
@@ -210,8 +215,18 @@ export default function Canvas() {
     } else if (hand.mode === "draw") {
       switch (e.button) {
         case 0:
-          addPoint(snappedCursorPos.world());
-          setClick({ lastClickedAt: performance.now() });
+          if (
+            // double click at the same position
+            performance.now() - lastReleasedAt() < 300 &&
+            hand.points.length > 0 &&
+            hand.points.at(-1)?.x === snappedCursorPos.world().x &&
+            hand.points.at(-1)?.y === snappedCursorPos.world().y
+          ) {
+            finishIfPossible();
+          } else {
+            addPoint(snappedCursorPos.world());
+            finishIfRequired();
+          }
           return;
         case 1:
           e.preventDefault();
@@ -310,7 +325,10 @@ export default function Canvas() {
       }}
     >
       <svg
-        class="cursor-crosshair select-none"
+        class="select-none"
+        style={{
+          cursor: isDown() ? "grabbing" : "grab",
+        }}
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
@@ -392,7 +410,8 @@ export default function Canvas() {
               <Show
                 when={
                   hand.mode === "select" &&
-                  hand.selecteds.includes(content.uuid)
+                  hand.selecteds.length === 1 &&
+                  hand.selecteds[0] === content.uuid
                 }
               >
                 <Index each={content.points}>
