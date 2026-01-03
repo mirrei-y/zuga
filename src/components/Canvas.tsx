@@ -228,10 +228,6 @@ export default function Canvas() {
     },
   });
 
-  createEffect(() => {
-    console.log(currentSnap());
-  });
-
   const [pointDragOriginal, setPointDragOriginal] =
     createSignal<WorldPos | null>(null);
   const [pointDragIndex, setPointDragIndex] = createSignal<number | null>(null);
@@ -341,10 +337,6 @@ export default function Canvas() {
     });
   };
 
-  useHotkey("Delete", () => {
-    deleteSelection();
-  });
-
   const handleItemMousedown = (e: MouseEvent, id: Uuid) => {
     if (hand.mode !== "select") return;
     e.stopPropagation();
@@ -364,6 +356,10 @@ export default function Canvas() {
     setPointDragIndex(index);
     startPointDrag(cursorPos.screen());
   };
+
+  useHotkey("Delete", () => {
+    deleteSelection();
+  });
 
   const updateRect = (id: Uuid, el: SVGGraphicsElement) => {
     const bbox = el.getBBox();
