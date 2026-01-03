@@ -22,12 +22,12 @@ export const useSnappedCursorPos = () => {
   type VerticalLine = {
     type: "vertical";
     x: number;
-    anchor: WorldPos;
+    anchors: WorldPos[];
   };
   type HorizontalLine = {
     type: "horizontal";
     y: number;
-    anchor: WorldPos;
+    anchors: WorldPos[];
   };
   type Line = VerticalLine | HorizontalLine;
 
@@ -35,22 +35,56 @@ export const useSnappedCursorPos = () => {
     const anchorBased = everyAnchors().flatMap(
       (anchor) =>
         [
-          { type: "vertical", x: anchor.x, anchor },
-          { type: "horizontal", y: anchor.y, anchor },
+          { type: "vertical", x: anchor.x, anchors: [anchor] },
+          { type: "horizontal", y: anchor.y, anchors: [anchor] },
         ] as Line[]
     );
 
-    const distanceBased = everyAnchors().flatMap(
-      (anchor) =>
-        [
-          { type: "vertical", x: anchor.x + 30, anchor },
-          { type: "vertical", x: anchor.x - 30, anchor },
-          { type: "horizontal", y: anchor.y + 30, anchor },
-          { type: "horizontal", y: anchor.y - 30, anchor },
-        ] as Line[]
-    );
+    const sameXMap = new Map<number, WorldPos[]>();
+    const sameYMap = new Map<number, WorldPos[]>();
+    for (const anchor of everyAnchors()) {
+      if (!sameXMap.has(anchor.x)) {
+        sameXMap.set(anchor.x, []);
+      }
+      sameXMap.get(anchor.x)!.push(anchor);
 
-    return [...new Set([...anchorBased, ...distanceBased])];
+      if (!sameYMap.has(anchor.y)) {
+        sameYMap.set(anchor.y, []);
+      }
+      sameYMap.get(anchor.y)!.push(anchor);
+    }
+
+    const anchorHalfBased: Line[] = [];
+
+    for (const anchors of sameXMap.values()) {
+      if (anchors.length >= 2) {
+        anchors.sort((a, b) => a.y - b.y);
+        for (let i = 0; i < anchors.length - 1; i++) {
+          const yMid = (anchors[i].y + anchors[i + 1].y) / 2;
+          anchorHalfBased.push({
+            type: "horizontal",
+            y: yMid,
+            anchors: [anchors[i], anchors[i + 1]],
+          });
+        }
+      }
+    }
+
+    for (const anchors of sameYMap.values()) {
+      if (anchors.length >= 2) {
+        anchors.sort((a, b) => a.x - b.x);
+        for (let i = 0; i < anchors.length - 1; i++) {
+          const xMid = (anchors[i].x + anchors[i + 1].x) / 2;
+          anchorHalfBased.push({
+            type: "vertical",
+            x: xMid,
+            anchors: [anchors[i], anchors[i + 1]],
+          });
+        }
+      }
+    }
+
+    return [...anchorBased, ...anchorHalfBased];
   });
 
   const targetLine = createMemo<{
@@ -101,7 +135,7 @@ export const useSnappedCursorPos = () => {
       snappedX = lineX.x;
     } else {
       const gridSnapped = Math.round(original.x / 30) * 30;
-      if (Math.abs(original.x - gridSnapped) < 10 / camera.scale) {
+      if (Math.abs(original.x - gridSnapped) < 5 / camera.scale) {
         snappedX = gridSnapped;
       }
     }
@@ -109,7 +143,7 @@ export const useSnappedCursorPos = () => {
       snappedY = lineY.y;
     } else {
       const gridSnapped = Math.round(original.y / 30) * 30;
-      if (Math.abs(original.y - gridSnapped) < 10 / camera.scale) {
+      if (Math.abs(original.y - gridSnapped) < 5 / camera.scale) {
         snappedY = gridSnapped;
       }
     }

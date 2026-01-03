@@ -11,7 +11,6 @@ export const anchors = (content: Content<Kind>): WorldPos[] => {
         asWorldPos({ x: pt2.x, y: pt1.y }),
         asWorldPos({ x: pt2.x, y: pt2.y }),
         asWorldPos({ x: pt1.x, y: pt2.y }),
-        asWorldPos({ x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 }),
       ];
     }
     case "ellipse": {
@@ -21,7 +20,6 @@ export const anchors = (content: Content<Kind>): WorldPos[] => {
         asWorldPos({ x: pt2.x, y: (pt1.y + pt2.y) / 2 }),
         asWorldPos({ x: (pt1.x + pt2.x) / 2, y: pt2.y }),
         asWorldPos({ x: pt1.x, y: (pt1.y + pt2.y) / 2 }),
-        asWorldPos({ x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 }),
       ];
     }
     case "line": {

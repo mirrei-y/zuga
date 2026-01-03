@@ -396,49 +396,57 @@ export default function Canvas() {
 
         <Show when={snappedCursorPos.targetLine().x}>
           {(line) => (
-            <>
-              <circle
-                cx={line().anchor.x}
-                cy={line().anchor.y}
-                r={3 / camera.scale}
-                fill="var(--color-orange-400)"
-              />
-              <line
-                x1={line().x}
-                y1={northWest().y}
-                x2={line().x}
-                y2={southEast().y}
-                stroke="var(--color-orange-400)"
-                stroke-width={1 / camera.scale}
-                stroke-dasharray={`${10 / camera.scale} ${
-                  10 / camera.scale
-                }`}
-              />
-            </>
+            <For each={line().anchors && line().anchors}>
+              {(anchor) => (
+                <>
+                  <circle
+                    cx={anchor.x}
+                    cy={anchor.y}
+                    r={3 / camera.scale}
+                    fill="var(--color-orange-400)"
+                  />
+                  <line
+                    x1={line().x}
+                    y1={northWest().y}
+                    x2={line().x}
+                    y2={southEast().y}
+                    stroke="var(--color-orange-400)"
+                    stroke-width={1 / camera.scale}
+                    stroke-dasharray={`${10 / camera.scale} ${
+                      10 / camera.scale
+                    }`}
+                  />
+                </>
+              )}
+            </For>
           )}
         </Show>
 
         <Show when={snappedCursorPos.targetLine().y}>
           {(line) => (
-            <>
-              <circle
-                cx={line().anchor.x}
-                cy={line().anchor.y}
-                r={3 / camera.scale}
-                fill="var(--color-orange-400)"
-              />
-              <line
-                x1={northWest().x}
-                y1={line().y}
-                x2={southEast().x}
-                y2={line().y}
-                stroke="var(--color-orange-400)"
-                stroke-width={1 / camera.scale}
-                stroke-dasharray={`${10 / camera.scale} ${
-                  10 / camera.scale
-                }`}
-              />
-            </>
+            <For each={line().anchors && line().anchors}>
+              {(anchor) => (
+                <>
+                  <circle
+                    cx={anchor.x}
+                    cy={anchor.y}
+                    r={3 / camera.scale}
+                    fill="var(--color-orange-400)"
+                  />
+                  <line
+                    x1={northWest().x}
+                    y1={line().y}
+                    x2={southEast().x}
+                    y2={line().y}
+                    stroke="var(--color-orange-400)"
+                    stroke-width={1 / camera.scale}
+                    stroke-dasharray={`${10 / camera.scale} ${
+                      10 / camera.scale
+                    }`}
+                  />
+                </>
+              )}
+            </For>
           )}
         </Show>
 
