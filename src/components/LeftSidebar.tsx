@@ -1,20 +1,26 @@
 import { thumbnails } from "~/logic/meta/thumbnails";
 import { handStore } from "~/stores/handStore";
 import { Kind, kinds } from "~/logic/kind";
-import { createSignal, For, JSX } from "solid-js";
+import { createSignal, For, JSX, Match, Show, Switch } from "solid-js";
 import {
+  TbDownload,
   TbHandMove,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
   TbPencil,
+  TbUpload,
   TbZoomPan,
 } from "solid-icons/tb";
 import { defaultHand, Mode } from "~/logic/hand";
 import { names } from "~/logic/meta/names";
+import { contentsStore } from "~/stores/contentsStore";
+import { Svg } from "~/logic/meta/svgs";
+import { render } from "solid-js/web";
 
 export default function Sidebar() {
   const [hand, setHand] = handStore;
   const [isOpen, setIsOpen] = createSignal(true);
+  const [contents, setContents] = contentsStore;
 
   const ModeButton = (props: {
     mode: Mode;
@@ -50,6 +56,75 @@ export default function Sidebar() {
     );
   };
 
+  const download = () => {
+    const xMin = Math.min(
+      ...Object.values(contents.rects).map((content) => content.position.x)
+    );
+    const yMin = Math.min(
+      ...Object.values(contents.rects).map((content) => content.position.y)
+    );
+    const xMax = Math.max(
+      ...Object.values(contents.rects).map(
+        (content) => content.position.x + content.size.x
+      )
+    );
+    const yMax = Math.max(
+      ...Object.values(contents.rects).map(
+        (content) => content.position.y + content.size.y
+      )
+    );
+
+    const svgHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE xml>\n<svg xmlns="http://www.w3.org/2000/svg" width="${
+      xMax - xMin
+    }" height="${yMax - yMin}" viewBox="${xMin} ${yMin} ${xMax - xMin} ${
+      yMax - yMin
+    }"><metadata>${JSON.stringify(contents)}</metadata>`;
+    const svgFooter = `</svg>`;
+
+    const svgContents = Object.values(contents.contents)
+      .map((content) => {
+        document.getElementById("svg-helper")!.innerHTML = "";
+        render(
+          () => <Svg content={content} />,
+          document.getElementById("svg-helper")!
+        );
+        return document.getElementById("svg-helper")!.innerHTML;
+      })
+      .join("\n");
+
+    const svg = `${svgHeader}\n${svgContents}\n${svgFooter}`;
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "canvas.svg";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const load = (e: Event) => {
+    const file = (e.currentTarget! as HTMLInputElement).files?.item(0);
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (typeof text !== "string") return;
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const metadata = doc.querySelector("metadata")?.textContent;
+        if (!metadata) throw new Error("No metadata found");
+        const parsed = JSON.parse(metadata);
+        setContents(parsed);
+      } catch (error) {
+        alert("SVGの読み込みに失敗しました。");
+        console.error(error);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <>
       <aside
@@ -74,18 +149,36 @@ export default function Sidebar() {
           <For each={kinds}>{(kind) => <KindButton kind={kind} />}</For>
         </div>
       </aside>
-      <button
-        class="absolute bottom-4 left-4 p-2 rounded-md bg-slate-200 hover:bg-slate-300 transition-colors"
-        onClick={() => {
-          setIsOpen((s) => !s);
-        }}
-      >
-        {isOpen() ? (
-          <TbLayoutSidebarLeftCollapse />
-        ) : (
-          <TbLayoutSidebarLeftExpand />
-        )}
-      </button>
+
+      <div class="absolute bottom-4 left-4 flex flex-row gap-2">
+        <button
+          class="p-2 rounded-md bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white transition-colors flex flex-row items-center gap-2"
+          onClick={() => {
+            setIsOpen((s) => !s);
+          }}
+        >
+          <Switch>
+            <Match when={isOpen()}>
+              <TbLayoutSidebarLeftCollapse size={20} /> しまう
+            </Match>
+            <Match when={!isOpen()}>
+              <TbLayoutSidebarLeftExpand size={20} /> あける
+            </Match>
+          </Switch>
+        </button>
+        <button
+          class="p-2 rounded-md bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white transition-colors flex flex-row items-center gap-2"
+          onClick={download}
+        >
+          <TbDownload /> ほぞん
+        </button>
+        <label class="p-2 rounded-md bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white transition-colors flex flex-row items-center gap-2 cursor-pointer">
+          <input type="file" accept=".svg" class="hidden" onChange={load} />
+          <TbUpload /> よみこみ
+        </label>
+      </div>
+
+      <svg id="svg-helper" class="hidden"></svg>
     </>
   );
 }
