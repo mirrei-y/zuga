@@ -51,10 +51,13 @@ import { useClick } from "~/composables/useClick";
 import { useSnap } from "~/composables/useSnap";
 import { SnapLine } from "~/logic/snapLine";
 import LineGuide from "./LineGuide";
+import { unwrap } from "solid-js/store";
+import { clipboardStore } from "~/stores/clipboardStore";
 
 export default function Canvas() {
   const [hand, setHand] = handStore;
   const [contents, setContents] = contentsStore;
+  const [clipboard, setClipboard] = clipboardStore;
   const [camera, setCamera] = cameraStore;
   const { isDown, lastReleasedAt } = useClick();
   const snap = useSnap();
@@ -224,6 +227,10 @@ export default function Canvas() {
       batch(() => {
         setItemDragOriginals([]);
         setCurrrentSnap(null);
+        setContents({
+          history: [...contents.history, { ...contents.contents }],
+          undoHistory: [],
+        });
       });
     },
   });
@@ -264,6 +271,10 @@ export default function Canvas() {
       batch(() => {
         setPointDragIndex(null);
         setCurrrentSnap(null);
+        setContents({
+          history: [...contents.history, { ...contents.contents }],
+          undoHistory: [],
+        });
       });
     },
   });
@@ -357,8 +368,73 @@ export default function Canvas() {
     startPointDrag(cursorPos.screen());
   };
 
-  useHotkey("Delete", () => {
+  useHotkey("Delete", {}, () => {
     deleteSelection();
+  });
+
+  useHotkey("z", { ctrl: true }, () => {
+    if (contents.history.length === 0) return;
+    batch(() => {
+      const previous = contents.history[contents.history.length - 1];
+      setContents({
+        contents: previous,
+        history: contents.history.slice(0, -1),
+        undoHistory: [...contents.undoHistory, { ...contents.contents }],
+      });
+      setHand({ selecteds: [] });
+    });
+  });
+
+  useHotkey("Z", { ctrl: true }, () => {
+    if (contents.undoHistory.length === 0) return;
+    batch(() => {
+      const next = contents.undoHistory[contents.undoHistory.length - 1];
+      setContents({
+        contents: next,
+        undoHistory: contents.undoHistory.slice(0, -1),
+        history: [...contents.history, { ...contents.contents }],
+      });
+      setHand({ selecteds: [] });
+    });
+  });
+
+  useHotkey("c", { ctrl: true }, () => {
+    if (hand.mode !== "select") return;
+    setClipboard({
+      contents: hand.selecteds.map((uuid) => contents.contents[uuid]),
+    });
+  });
+
+  useHotkey("v", { ctrl: true }, () => {
+    const newContents: Record<Uuid, Content<Kind>> = {};
+    for (const content of clipboard.contents) {
+      if (!content) continue;
+      const newUuid = crypto.randomUUID() as Uuid;
+      newContents[newUuid] = {
+        ...content,
+        uuid: newUuid,
+        points: content.points.map((pt) =>
+          asWorldPos({
+            x: pt.x + 30,
+            y: pt.y + 30,
+          })
+        ),
+      };
+    }
+    batch(() => {
+      setContents({
+        contents: {
+          ...contents.contents,
+          ...newContents,
+        },
+        history: [...contents.history, { ...contents.contents }],
+        undoHistory: [],
+      });
+      setHand({
+        selecteds: [],
+      });
+      setClipboard({ contents: [...Object.values(newContents)] });
+    });
   });
 
   const updateRect = (id: Uuid, el: SVGGraphicsElement) => {

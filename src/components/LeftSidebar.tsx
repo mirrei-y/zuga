@@ -104,7 +104,7 @@ export default function Sidebar() {
       width="${xMax - xMin}"
       height="${yMax - yMin}"
       viewBox="${xMin} ${yMin} ${xMax - xMin} ${yMax - yMin}">
-      <metadata>${JSON.stringify(contents)}</metadata>
+      <metadata>${JSON.stringify(contents.contents)}</metadata>
       <defs>
         <style type="text/css">
           ${katex}
@@ -175,7 +175,12 @@ export default function Sidebar() {
         const metadata = doc.querySelector("metadata")?.textContent;
         if (!metadata) throw new Error("No metadata found");
         const parsed = JSON.parse(metadata);
-        setContents(parsed);
+        setContents({
+          contents: parsed,
+          rects: {},
+          history: [],
+          undoHistory: [],
+        });
       } catch (error) {
         alert("SVGの読み込みに失敗しました。");
         console.error(error);
@@ -291,7 +296,8 @@ export default function Sidebar() {
             opacity: tooltipPos() ? "1" : "0",
           }}
         >
-          Zugaでもう一度読み込むこともできます。<br />
+          Zugaでもう一度読み込むこともできます。
+          <br />
           開くソフトウェアによっては、数式が表示されないことがあります。
         </div>
       </Portal>

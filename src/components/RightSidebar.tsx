@@ -29,6 +29,8 @@ export default function RightSidebar<K extends Kind>() {
           },
         },
       },
+      history: [...contents.history, { ...contents.contents }],
+      undoHistory: [],
     });
   };
 

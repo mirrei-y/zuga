@@ -7,4 +7,6 @@ import { Uuid } from "~/utilities/uuid";
 export const contentsStore = createStore({
   contents: {} as Record<Uuid, Content<Kind>>,
   rects: {} as Record<Uuid, Rect>,
+  history: [] as Record<Uuid, Content<Kind>>[],
+  undoHistory: [] as Record<Uuid, Content<Kind>>[],
 });

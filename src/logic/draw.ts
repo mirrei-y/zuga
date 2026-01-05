@@ -22,6 +22,8 @@ const finish = () => {
         props: defaultProps[hand.kind],
       } as Content<typeof hand.kind>,
     },
+    history: [...content.history, { ...content.contents }],
+    undoHistory: [],
   });
   setHand({ points: [] });
 };

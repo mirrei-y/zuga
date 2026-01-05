@@ -20,7 +20,11 @@ export const deleteSelection = () => {
     hand.selecteds.forEach((uuid) => {
       delete newContents[uuid];
     });
-    setContents({ contents: newContents });
+    setContents({
+      contents: newContents,
+      history: [...contents.history, { ...contents.contents }],
+      undoHistory: [],
+    });
     setHand({ selecteds: [] });
   });
 };
