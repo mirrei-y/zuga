@@ -5,4 +5,5 @@ export const names: Record<Kind, string> = {
   ellipse: "楕円",
   line: "線",
   text: "テキスト",
+  math: "数式"
 };

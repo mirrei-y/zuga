@@ -3,7 +3,7 @@ import LeftSidebar from "~/components/LeftSidebar";
 import RightSidebar from "~/components/RightSidebar";
 import Canvas from "~/components/Canvas";
 import { handStore } from "~/stores/handStore";
-import { createMemo, Show } from "solid-js";
+import { Show } from "solid-js";
 import Cursor from "~/components/Cursor";
 
 export default function Home() {

@@ -89,4 +89,11 @@ export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
       type: "color",
     },
   ],
+  math: [
+    {
+      key: "content",
+      name: "数式",
+      type: "text",
+    }
+  ]
 };

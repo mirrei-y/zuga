@@ -53,4 +53,17 @@ export const thumbnails: Record<Kind, JSX.Element> = {
       </text>
     </svg>
   ),
+  math: (
+    <svg width="40" height="40">
+      <text
+        x="20"
+        y="32.5"
+        text-anchor="middle"
+        font-size="35"
+        fill="currentColor"
+      >
+        ∑
+      </text>
+    </svg>
+  ),
 };

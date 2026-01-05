@@ -28,6 +28,9 @@ export const anchors = (content: Content<Kind>): WorldPos[] => {
     case "text": {
       return content.points;
     }
+    case "math": {
+      return content.points;
+    }
     default: {
       content satisfies never;
       throw new Error(`Unknown content kind: ${(content as any).kind}`);

@@ -20,6 +20,9 @@ export type Props<K extends Kind> = {
     fontSize: number;
     color: string;
   };
+  math: {
+    content: string;
+  }
 }[K];
 
 export const defaultProps: { [K in Kind]: Props<K> } = {
@@ -39,4 +42,7 @@ export const defaultProps: { [K in Kind]: Props<K> } = {
     fontSize: 16,
     color: "#000000",
   },
+  math: {
+    content: "X"
+  }
 };

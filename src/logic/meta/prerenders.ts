@@ -16,6 +16,9 @@ export type Prerendered<K extends Kind> = {
   text: {
     position: WorldPos;
   };
+  math: {
+    position: WorldPos;
+  }
 }[K];
 
 export const prerenders: {
@@ -55,4 +58,10 @@ export const prerenders: {
       position: pt1,
     };
   },
+  math: (points) => {
+    const [pt1, pt2] = points;
+    return {
+      position: pt1,
+    };
+  }
 };

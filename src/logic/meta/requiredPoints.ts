@@ -6,4 +6,5 @@ export const requiredPoints: Record<Kind, Constraint> = {
   ellipse: { exact: 2 },
   line: { min: 2 },
   text: { exact: 1 },
+  math: { exact: 1 },
 };

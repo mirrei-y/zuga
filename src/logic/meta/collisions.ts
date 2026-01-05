@@ -96,6 +96,9 @@ export const isColliding = (content: Content<Kind>, pos: WorldPos): boolean => {
     case "text": {
       return true;
     }
+    case "math": {
+      return true;
+    }
     default:
       content satisfies never;
       return false;

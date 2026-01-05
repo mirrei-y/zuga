@@ -5,6 +5,7 @@ import { createSignal, For, JSX, Match, Show, Switch } from "solid-js";
 import {
   TbDownload,
   TbHandMove,
+  TbInfoCircle,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
   TbPencil,
@@ -15,11 +16,16 @@ import { defaultHand, Mode } from "~/logic/hand";
 import { names } from "~/logic/meta/names";
 import { contentsStore } from "~/stores/contentsStore";
 import { Svg } from "~/logic/meta/svgs";
-import { render } from "solid-js/web";
+import { Portal, render } from "solid-js/web";
 
 export default function Sidebar() {
   const [hand, setHand] = handStore;
   const [isOpen, setIsOpen] = createSignal(true);
+  const [isSaveModalOpen, setIsSaveModalOpen] = createSignal(false);
+  const [tooltipPos, setTooltipPos] = createSignal<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [contents, setContents] = contentsStore;
 
   const ModeButton = (props: {
@@ -56,51 +62,104 @@ export default function Sidebar() {
     );
   };
 
-  const download = () => {
+  const getHtmlString = (component: JSX.Element): string => {
+    const wrapper = document.createElement("div");
+    document.body.appendChild(wrapper);
+    wrapper.style.position = "absolute";
+    wrapper.style.visibility = "hidden";
+    wrapper.style.pointerEvents = "none";
+    render(() => component, wrapper);
+    const htmlString = wrapper.innerHTML;
+    document.body.removeChild(wrapper);
+    return htmlString;
+  };
+
+  const download = async (as: "svg" | "png") => {
     const xMin = Math.min(
-      ...Object.values(contents.rects).map((content) => content.position.x)
+      ...Object.values(contents.rects).map((rect) => rect.position.x)
     );
     const yMin = Math.min(
-      ...Object.values(contents.rects).map((content) => content.position.y)
+      ...Object.values(contents.rects).map((rect) => rect.position.y)
     );
     const xMax = Math.max(
       ...Object.values(contents.rects).map(
-        (content) => content.position.x + content.size.x
+        (rect) => rect.position.x + rect.size.x
       )
     );
     const yMax = Math.max(
       ...Object.values(contents.rects).map(
-        (content) => content.position.y + content.size.y
+        (rect) => rect.position.y + rect.size.y
       )
     );
 
-    const svgHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE xml>\n<svg xmlns="http://www.w3.org/2000/svg" width="${
-      xMax - xMin
-    }" height="${yMax - yMin}" viewBox="${xMin} ${yMin} ${xMax - xMin} ${
-      yMax - yMin
-    }"><metadata>${JSON.stringify(contents)}</metadata>`;
+    const katex = Object.values(contents.contents).some(
+      (content) => content.kind === "math"
+    )
+      ? (await import("../katex-inlined.min.css?raw")).default
+      : "";
+
+    const svgHeader = `<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE xml>
+    <svg xmlns="http://www.w3.org/2000/svg"
+      width="${xMax - xMin}"
+      height="${yMax - yMin}"
+      viewBox="${xMin} ${yMin} ${xMax - xMin} ${yMax - yMin}">
+      <metadata>${JSON.stringify(contents)}</metadata>
+      <defs>
+        <style type="text/css">
+          ${katex}
+        </style>
+      </defs>
+    `.replace(/\n\s+/g, "\n");
     const svgFooter = `</svg>`;
 
     const svgContents = Object.values(contents.contents)
-      .map((content) => {
-        document.getElementById("svg-helper")!.innerHTML = "";
-        render(
-          () => <Svg content={content} />,
-          document.getElementById("svg-helper")!
-        );
-        return document.getElementById("svg-helper")!.innerHTML;
-      })
+      .map((content) => getHtmlString(<Svg content={content} />))
       .join("\n");
 
-    const svg = `${svgHeader}\n${svgContents}\n${svgFooter}`;
+    const svg = `${svgHeader}${svgContents}${svgFooter}`;
 
     const blob = new Blob([svg], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "canvas.svg";
-    a.click();
-    URL.revokeObjectURL(url);
+    const svgUrl = URL.createObjectURL(blob);
+
+    if (as === "png") {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = xMax - xMin;
+        canvas.height = yMax - yMin;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          alert("PNG形式での保存に失敗しました。");
+          return;
+        }
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            alert("PNG形式での保存に失敗しました。");
+            return;
+          }
+          const pngUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = pngUrl;
+          a.download = "canvas.png";
+          a.click();
+          URL.revokeObjectURL(pngUrl);
+        }, "image/png");
+      };
+      img.onerror = () => {
+        alert("PNG形式での保存に失敗しました。");
+      };
+      img.src = svgUrl;
+    } else {
+      const a = document.createElement("a");
+      a.href = svgUrl;
+      a.download = "canvas.svg";
+      a.click();
+      URL.revokeObjectURL(svgUrl);
+    }
   };
 
   const load = (e: Event) => {
@@ -168,7 +227,7 @@ export default function Sidebar() {
         </button>
         <button
           class="p-2 rounded-md bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white transition-colors flex flex-row items-center gap-2"
-          onClick={download}
+          onClick={() => setIsSaveModalOpen(true)}
         >
           <TbDownload /> ほぞん
         </button>
@@ -178,7 +237,64 @@ export default function Sidebar() {
         </label>
       </div>
 
-      <svg id="svg-helper" class="hidden"></svg>
+      <Portal mount={document.body}>
+        <Show when={isSaveModalOpen()}>
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm flex flex-row items-center justify-center"
+            onClick={() => setIsSaveModalOpen(false)}
+          >
+            <div
+              class="bg-white rounded-md p-6 w-80 flex flex-col items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 class="text-xl font-bold">形式を選んでください</h2>
+              <div class="flex flex-col gap-4 w-full">
+                <button
+                  class="w-full p-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white rounded-md flex flex-row items-center justify-center gap-2 transition-colors"
+                  onClick={() => {
+                    download("svg");
+                    setIsSaveModalOpen(false);
+                  }}
+                >
+                  <TbDownload /> SVG形式で保存{" "}
+                  <TbInfoCircle
+                    color="var(--color-slate-600)"
+                    onMouseEnter={(e) => {
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => {
+                      setTooltipPos(null);
+                    }}
+                  />
+                </button>
+                <button
+                  class="w-full p-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 active:text-white rounded-md flex flex-row items-center justify-center gap-2 transition-colors"
+                  onClick={() => {
+                    download("png");
+                    setIsSaveModalOpen(false);
+                  }}
+                >
+                  <TbDownload /> PNG形式で保存
+                </button>
+              </div>
+            </div>
+          </div>
+        </Show>
+      </Portal>
+
+      <Portal mount={document.body}>
+        <div
+          class="fixed pointer-events-none bg-black text-white text-sm rounded-md px-2 py-1 transition-opacity"
+          style={{
+            left: tooltipPos() ? `${tooltipPos()!.x + 12}px` : "-9999px",
+            top: tooltipPos() ? `${tooltipPos()!.y + 12}px` : "-9999px",
+            opacity: tooltipPos() ? "1" : "0",
+          }}
+        >
+          Zugaでもう一度読み込むこともできます。<br />
+          開くソフトウェアによっては、数式が表示されないことがあります。
+        </div>
+      </Portal>
     </>
   );
 }

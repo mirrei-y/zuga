@@ -5,6 +5,7 @@ import { Suspense } from "solid-js";
 
 import "./app.css";
 import "@fontsource-variable/inter";
+import "katex/dist/katex.min.css";
 
 export default function App() {
   return (
