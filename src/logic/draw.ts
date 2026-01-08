@@ -5,11 +5,12 @@ import { isSatisfied } from "~/utilities/constraint";
 import { WorldPos } from "~/utilities/pos";
 import { requiredPoints } from "./meta/requiredPoints";
 import { defaultProps } from "./meta/props";
+import { Uuid } from "~/utilities/uuid";
 
-const finish = () => {
+const finish = (): Uuid | null => {
   const [hand, setHand] = handStore;
   const [content, setContent] = contentsStore;
-  if (hand.mode !== "draw") return;
+  if (hand.mode !== "draw") return null;
 
   const newUuid = crypto.randomUUID();
   setContent({
@@ -26,12 +27,13 @@ const finish = () => {
     undoHistory: [],
   });
   setHand({ points: [] });
+  return newUuid;
 };
 
-export const finishIfPossible = (lastPos?: WorldPos) => {
+export const finishIfPossible = (lastPos?: WorldPos): Uuid | null => {
   const [hand, setHand] = handStore;
 
-  if (hand.mode !== "draw") return;
+  if (hand.mode !== "draw") return null;
   if (lastPos) {
     if (
       isSatisfied(requiredPoints[hand.kind], hand.points.length + 1) &&
@@ -42,25 +44,27 @@ export const finishIfPossible = (lastPos?: WorldPos) => {
       setHand({
         points: [...hand.points, lastPos],
       });
-      finish();
+      return finish();
     }
   } else {
     if (isSatisfied(requiredPoints[hand.kind], hand.points.length)) {
-      finish();
+      return finish();
     }
   }
+  return null;
 };
 
-export const finishIfRequired = () => {
+export const finishIfRequired = (): Uuid | null => {
   const [hand] = handStore;
 
-  if (hand.mode !== "draw") return;
+  if (hand.mode !== "draw") return null;
   if (
     isSatisfied(requiredPoints[hand.kind], hand.points.length) &&
     !isSatisfied(requiredPoints[hand.kind], hand.points.length + 1)
   ) {
-    finish();
+    return finish();
   }
+  return null;
 };
 
 export const addPoint = (pos: WorldPos) => {

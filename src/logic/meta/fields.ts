@@ -20,10 +20,25 @@ export type TextField<K extends Kind> = {
   type: "text";
 };
 
+export type BooleanField<K extends Kind> = {
+  key: keyof Props<K>;
+  name: string;
+  type: "boolean";
+};
+
+export type SelectField<K extends Kind> = {
+  key: keyof Props<K>;
+  name: string;
+  options: { label: string; value: any }[];
+  type: "select";
+};
+
 export type OtherPropField<K extends Kind> =
   | ColorField<K>
   | LengthField<K>
-  | TextField<K>;
+  | TextField<K>
+  | BooleanField<K>
+  | SelectField<K>;
 
 export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
   rectangle: [
@@ -42,6 +57,33 @@ export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
       name: "線の太さ",
       type: "length",
     },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
   ],
   ellipse: [
     {
@@ -59,6 +101,77 @@ export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
       name: "線の太さ",
       type: "length",
     },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
+  ],
+  polygon: [
+    {
+      key: "color",
+      name: "塗りつぶし",
+      type: "color",
+    },
+    {
+      key: "strokeColor",
+      name: "線の色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
   ],
   line: [
     {
@@ -70,6 +183,211 @@ export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
       key: "strokeWidth",
       name: "線の太さ",
       type: "length",
+    },
+    {
+      key: "arrowStart",
+      name: "始点の矢印",
+      type: "boolean",
+    },
+    {
+      key: "arrowEnd",
+      name: "終点の矢印",
+      type: "boolean",
+    },
+  ],
+  resistor: [
+    {
+      key: "color",
+      name: "色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
+  ],
+  capacitor: [
+    {
+      key: "color",
+      name: "色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
+  ],
+  inductor: [
+    {
+      key: "color",
+      name: "色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
+  ],
+  source: [
+    {
+      key: "color",
+      name: "色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
+    },
+  ],
+  gnd: [
+    {
+      key: "color",
+      name: "色",
+      type: "color",
+    },
+    {
+      key: "strokeWidth",
+      name: "線の太さ",
+      type: "length",
+    },
+    {
+      key: "label",
+      name: "ラベル",
+      type: "text",
+    },
+    {
+      key: "labelColor",
+      name: "ラベルの色",
+      type: "color",
+    },
+    {
+      key: "labelSize",
+      name: "ラベルのサイズ",
+      type: "length",
+    },
+    {
+      key: "labelPlacement",
+      name: "ラベルの位置",
+      type: "select",
+      options: [
+        { label: "中央", value: "center" },
+        { label: "上", value: "top" },
+        { label: "下", value: "bottom" },
+        { label: "左", value: "left" },
+        { label: "右", value: "right" },
+      ],
     },
   ],
   text: [
@@ -94,6 +412,6 @@ export const fieldsOfProps: { [K in Kind]: OtherPropField<K>[] } = {
       key: "content",
       name: "数式",
       type: "text",
-    }
-  ]
+    },
+  ],
 };

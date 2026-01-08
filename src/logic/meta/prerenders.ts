@@ -10,11 +10,29 @@ export type Prerendered<K extends Kind> = {
     center: WorldPos;
     radius: DeltaPos;
   };
+  polygon: {
+    points: WorldPos[];
+  };
   line: {
     points: WorldPos[];
   };
   text: {
     position: WorldPos;
+  };
+  resistor: {
+    points: WorldPos[];
+  };
+  capacitor: {
+    points: WorldPos[];
+  };
+  inductor: {
+    points: WorldPos[];
+  };
+  source: {
+    points: WorldPos[];
+  };
+  gnd: {
+    points: WorldPos[];
   };
   math: {
     position: WorldPos;
@@ -47,6 +65,11 @@ export const prerenders: {
       }
     };
   },
+  polygon: (points) => {
+    return {
+      points: points,
+    };
+  },
   line: (points) => {
     return {
       points: points,
@@ -58,8 +81,33 @@ export const prerenders: {
       position: pt1,
     };
   },
+  resistor: (points) => {
+    return {
+      points: points,
+    };
+  },
+  capacitor: (points) => {
+    return {
+      points: points,
+    };
+  },
+  inductor: (points) => {
+    return {
+      points: points,
+    };
+  },
+  source: (points) => {
+    return {
+      points: points,
+    };
+  },
+  gnd: (points) => {
+    return {
+      points: points,
+    };
+  },
   math: (points) => {
-    const [pt1, pt2] = points;
+    const [pt1] = points;
     return {
       position: pt1,
     };

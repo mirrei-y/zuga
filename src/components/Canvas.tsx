@@ -301,10 +301,22 @@ export default function Canvas() {
             hand.points.at(-1)?.x === cursorSnap().world.x &&
             hand.points.at(-1)?.y === cursorSnap().world.y
           ) {
-            finishIfPossible();
+            const uuid = finishIfPossible();
+            if (uuid) {
+              setHand({
+                mode: "select",
+                selecteds: [uuid],
+              });
+            }
           } else {
             addPoint(cursorSnap().world);
-            finishIfRequired();
+            const uuid = finishIfRequired();
+            if (uuid) {
+              setHand({
+                mode: "select",
+                selecteds: [uuid],
+              });
+            }
           }
           return;
         case 1:
