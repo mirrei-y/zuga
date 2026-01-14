@@ -449,6 +449,25 @@ export default function Canvas() {
     });
   });
 
+  useHotkey("Enter", {}, () => {
+    if (hand.mode !== "draw") return;
+    const uuid = finishIfPossible();
+    if (uuid) {
+      setHand({
+        mode: "select",
+        selecteds: [uuid],
+      });
+    }
+  });
+
+  useHotkey("Escape", {}, () => {
+    if (hand.mode === "draw") {
+      cancelDrawing();
+    } else if (hand.mode === "select") {
+      deselectAll();
+    }
+  });
+
   let arrowMoveTimeout: any;
   const moveByArrow = (dx: number, dy: number) => {
     if (hand.mode !== "select" || hand.selecteds.length === 0) return;
