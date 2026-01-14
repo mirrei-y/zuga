@@ -44,7 +44,11 @@ import {
 } from "~/utilities/rect";
 import { isColliding } from "~/logic/meta/collisions";
 import { useSampled } from "~/composables/useDebounced";
-import { moveContents, updateContentPoints, updatePointPosition } from "~/logic/transform";
+import {
+  moveContents,
+  updateContentPoints,
+  updatePointPosition,
+} from "~/logic/transform";
 import { Uuid } from "~/utilities/uuid";
 import { Kind } from "~/logic/kind";
 import { useClick } from "~/composables/useClick";
@@ -456,7 +460,7 @@ export default function Canvas() {
         undoHistory: [],
       });
       setHand({
-        selecteds: [],
+        selecteds: [...Object.keys(newContents)] as Uuid[],
       });
       setClipboard({ contents: [...Object.values(newContents)] });
     });
@@ -499,6 +503,12 @@ export default function Canvas() {
   useHotkey("ArrowDown", {}, () => moveByArrow(0, 1));
   useHotkey("ArrowLeft", {}, () => moveByArrow(-1, 0));
   useHotkey("ArrowRight", {}, () => moveByArrow(1, 0));
+
+  createEffect(() => {
+    window.addEventListener("beforeunload", (e) => {
+      e.preventDefault();
+    });
+  }, [contents]);
 
   const updateRect = (id: Uuid, el: SVGGraphicsElement) => {
     const bbox = el.getBBox();
