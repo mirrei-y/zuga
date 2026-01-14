@@ -5,7 +5,7 @@ import ColorPicker from "./ColorPicker";
 import { Kind } from "~/logic/kind";
 
 export default function Field(props: {
-  field: PropField<Kind>;
+  field: PropField<any>;
   value: any;
   onChange: (v: any) => void;
 }) {
