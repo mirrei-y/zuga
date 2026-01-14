@@ -459,10 +459,11 @@ export default function Canvas() {
         history: [...contents.history, { ...contents.contents }],
         undoHistory: [],
       });
-      setHand({
-        selecteds: [...Object.keys(newContents)] as Uuid[],
-      });
       setClipboard({ contents: [...Object.values(newContents)] });
+    });
+    // wait for rects to be updated
+    setHand({
+      selecteds: [...Object.keys(newContents)] as Uuid[],
     });
   });
 
